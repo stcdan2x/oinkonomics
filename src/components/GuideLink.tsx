@@ -19,7 +19,7 @@ export default function GuideLink({ id, label }: { id: string; label?: string })
     return () => { live = false }
   }, [id, title])
   return (
-    <Link to={`/guide/${id}`} className="inline-flex items-center gap-1 text-xs font-medium text-brand-600" title="Open in the Guide">
+    <Link to={`/guide/${id}`} className="inline-flex min-w-0 items-center gap-1 text-xs font-medium text-brand-600" title="Open in the Guide">
       <span aria-hidden="true">📖</span>
       <span className="truncate">{title ?? 'Guide'}</span>
     </Link>

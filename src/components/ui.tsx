@@ -15,7 +15,7 @@ export function Card({ title, action, children }: { title?: string; action?: Rea
     <section className="mx-4 mb-4 rounded-xl bg-white p-4 text-sm shadow-sm ring-1 ring-slate-200">
       {(title || action) && (
         <div className="mb-3 flex items-center justify-between gap-2">
-          {title && <h2 className="text-base font-bold">{title}</h2>}
+          {title && <h2 className="shrink-0 text-base font-bold">{title}</h2>}
           {action}
         </div>
       )}
