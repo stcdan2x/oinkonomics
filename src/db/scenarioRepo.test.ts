@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from './db'
 import { listScenarios, removeScenario, runScenario, saveScenario, scenarioParams } from './scenarioRepo'
 
@@ -29,8 +29,14 @@ describe('saveScenario', () => {
 })
 
 describe('listScenarios and removeScenario', () => {
+  afterEach(() => vi.useRealTimers())
+
   it('lists live scenarios newest first and hides removed ones', async () => {
+    // Pin the clock: on a fast runner two saves can share a millisecond and tie on createdAt.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-09-03T00:00:00.000Z'))
     const a = await saveScenario({ ...base, name: 'A' })
+    vi.setSystemTime(new Date('2026-09-03T00:00:01.000Z'))
     const b = await saveScenario({ ...base, name: 'B' })
     expect((await listScenarios()).map((s) => s.name)).toEqual(['B', 'A'])
     await removeScenario(b.id)
