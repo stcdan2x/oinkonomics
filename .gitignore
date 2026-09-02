@@ -1,0 +1,16 @@
+node_modules
+dist
+dev-dist
+*.local
+.DS_Store
+
+# research/sources: PDFs over 5 MB stay local only (see research/sources/README.md)
+/research/sources/pdf/ac02_s2022.pdf
+/research/sources/pdf/ao05_s2019.pdf
+/research/sources/pdf/emb_2016.pdf
+/research/sources/pdf/emb_annexA.pdf
+/research/sources/pdf/emb_threshold.pdf
+/research/sources/pdf/fao_218811.pdf
+/research/sources/pdf/pic_ph.pdf
+/research/sources/pdf/pilmico.pdf
+/research/sources/pdf/weap.pdf
