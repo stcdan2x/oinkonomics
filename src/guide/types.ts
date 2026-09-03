@@ -4,7 +4,7 @@
 
 import type { StrategyId } from '../types'
 
-export type GuideSectionId = 'start' | 'cycle' | 'feeding' | 'health' | 'housing' | 'market' | 'strategies' | 'records' | 'rules' | 'glossary'
+export type GuideSectionId = 'using' | 'start' | 'cycle' | 'feeding' | 'health' | 'housing' | 'market' | 'strategies' | 'records' | 'rules' | 'glossary'
 
 export interface GlossaryTerm {
   term: string
@@ -38,6 +38,7 @@ export const STRATEGY_ARTICLE: Record<StrategyId, string> = {
 }
 
 export const GUIDE_SECTIONS: { id: GuideSectionId; title: string; blurb: string }[] = [
+  { id: 'using', title: 'Using the app', blurb: 'How to run the farm on the app, screen by screen, in the order the work happens.' },
   { id: 'start', title: 'How Oinkonomics works', blurb: 'What the app records and how it computes every number it shows.' },
   { id: 'cycle', title: 'Breeding and the production cycle', blurb: 'Heat, service, gestation, farrowing, weaning and the sow year.' },
   { id: 'feeding', title: 'Feeding and growth', blurb: 'Stages, feed phases, gain, conversion and judging target weight.' },

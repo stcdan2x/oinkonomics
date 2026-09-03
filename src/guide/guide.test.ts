@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { APP_KPIS, GUIDE_SECTIONS } from './types'
-import { ARTICLES, PRICE_DISCLAIMER_ID, STRATEGY_ARTICLE, findArticle, glossaryTerms } from './articles'
+import { ARTICLES, PRICE_DISCLAIMER_ID, STRATEGY_ARTICLE, articlesInSection, findArticle, glossaryTerms } from './articles'
 
 // PLAN.md section 9, P8 verify column: every catalog strategy and every KPI has a
 // Guide page; the price disclaimer is present. Plus the content rules from
 // TASK 001 section 4, Phase P8: sources resolve, links resolve, no em dash.
 // Every page source, so the GuideLink ids used by the forms can be checked.
 const pages = import.meta.glob('../pages/**/*.tsx', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+// Page, component and label sources together (the pages' labels.ts files and
+// the ledger categories): the labels the manual may quote in bold.
+const ui = Object.values(import.meta.glob(['../pages/**/*.{ts,tsx}', '../components/**/*.tsx', '../knowledge/categories.ts'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>).join('\n')
 const EM_DASH = '—'
 const text = (a: (typeof ARTICLES)[number]) => [a.title, a.summary, a.body, ...(a.terms ?? []).flatMap((t) => [t.term, t.tagalog ?? '', t.meaning])].join('\n')
 
@@ -72,5 +75,23 @@ describe('guide articles', () => {
     }
     expect(problems).toEqual([])
     expect(Object.keys(pages).length).toBeGreaterThan(0)
+  })
+})
+
+// TASK 002: the "Using the app" manual. Bold is reserved for UI labels there, so
+// the manual cannot name a button, tab or field the app does not have.
+describe('using the app', () => {
+  it('is the first Guide section and has articles', () => {
+    expect(GUIDE_SECTIONS[0]?.id).toBe('using')
+    expect(articlesInSection('using').length).toBeGreaterThan(0)
+  })
+
+  it('quotes in bold only labels that exist in the page or component source', () => {
+    const problems: string[] = []
+    for (const a of articlesInSection('using')) {
+      for (const m of a.body.matchAll(/\*\*(.+?)\*\*/g)) if (!ui.includes(m[1])) problems.push(`${a.id}: ${m[1]}`)
+    }
+    expect(problems).toEqual([])
+    expect(ui.length).toBeGreaterThan(0)
   })
 })

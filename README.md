@@ -4,9 +4,9 @@ A business manager for a small Philippine piggery: an offline-first progressive
 web app that keeps the herd records (breeders, litters, growing batches, health
 events, sales), the money (ledger, income statement, cash flow, batch costing
 and break-even), the feed and supplies stock, a strategy recommender with
-projections, and a sourced Guide on raising and selling pigs. Data lives in the
-browser (IndexedDB) with optional sync between devices through the farm's own
-Google Drive.
+projections, and a sourced Guide on raising and selling pigs that opens with a
+user manual for the app. Data lives in the browser (IndexedDB) with optional
+sync between devices through the farm's own Google Drive.
 
 Live app: https://stcdan2x.github.io/oinkonomics/
 

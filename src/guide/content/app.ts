@@ -22,7 +22,7 @@ Oinkonomics keeps the records of one piggery on this phone or computer and works
 
 ## Records, not opinions
 
-Every number the app shows comes from a record you entered and a rule written in this Guide. The rules are fixed and explained in the articles of this section: [the breeding calendar](/guide/breeding-calendar), [growth tracking](/guide/growth-tracking), [money rules](/guide/money-rules), [cost allocation](/guide/cost-allocation), [unit costs and break-even](/guide/unit-costs-and-break-even), [stock rules](/guide/stock-rules), [projection assumptions](/guide/projection-assumptions) and [dashboard rules](/guide/dashboard-rules).
+How to use each screen, in the order the farm work happens, is in the [Using the app](/guide/getting-started) section. Every number the app shows comes from a record you entered and a rule written in this Guide. The rules are fixed and explained in the articles of this section: [the breeding calendar](/guide/breeding-calendar), [growth tracking](/guide/growth-tracking), [money rules](/guide/money-rules), [cost allocation](/guide/cost-allocation), [unit costs and break-even](/guide/unit-costs-and-break-even), [stock rules](/guide/stock-rules), [projection assumptions](/guide/projection-assumptions) and [dashboard rules](/guide/dashboard-rules).
 
 ## Sources and prices
 
