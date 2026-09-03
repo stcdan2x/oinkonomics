@@ -72,6 +72,7 @@ export default function App() {
             <Route path="/finance/reports" element={<FinancePage tab="reports" />} />
             <Route path="/finance/batches" element={<FinancePage tab="batches" />} />
             <Route path="/finance/new" element={<TransactionFormPage />} />
+            <Route path="/finance/:id/edit" element={<TransactionFormPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/inventory/items/new" element={<ItemFormPage />} />
             <Route path="/inventory/purchase" element={<PurchaseFormPage />} />

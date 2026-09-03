@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import PageHeader from '../../components/PageHeader'
 import { Badge, btnDanger, btnPrimary, btnSecondary, Card, Empty, ErrorText, Field, inputCls, ListItem, Row } from '../../components/ui'
 import GuideLink from '../../components/GuideLink'
-import { listAnimals, setAnimalStatus } from '../../db/animalRepo'
+import { listAnimals, reactivateAnimal, removeAnimal, setAnimalStatus } from '../../db/animalRepo'
 import { db } from '../../db/db'
 import { littersForSow, recordService } from '../../db/litterRepo'
 import { expectedFarrowDate, isOpenLitter, sowStage } from '../../engine/breeding'
@@ -22,6 +22,9 @@ export default function AnimalPage() {
   const animal = useLiveQuery(() => db.animals.get(id), [id])
   const litters = useLiveQuery(() => littersForSow(id), [id])
   const [panel, setPanel] = useState<Panel>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const navigate = useNavigate()
   const today = todayISO()
   if (animal === undefined) return null
   if (!animal || animal.deletedAt) return <PageHeader title="Animal not found" />
@@ -31,6 +34,15 @@ export default function AnimalPage() {
   const stage = female ? sowStage(latest, today) : null
   const hasOpen = !!latest && isOpenLitter(latest)
   const active = animal.status === 'active'
+  const run = async (fn: () => Promise<unknown>, then?: () => void) => {
+    setActionError(null)
+    try {
+      await fn()
+      then?.()
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : String(e))
+    }
+  }
 
   return (
     <>
@@ -76,6 +88,18 @@ export default function AnimalPage() {
         </Card>
       )}
       <EventList subjectType="animal" subjectId={animal.id} />
+      <div className="mx-4 mb-4 flex flex-wrap items-center gap-2">
+        {(animal.status === 'culled' || animal.status === 'dead') && <button className={`text-sm ${btnSecondary}`} onClick={() => run(() => reactivateAnimal(animal.id))}>Reactivate</button>}
+        {deleting ? (
+          <>
+            <button className={`text-sm ${btnDanger}`} onClick={() => run(() => removeAnimal(animal.id), () => navigate('/herd'))}>Confirm delete</button>
+            <button className={`text-sm ${btnSecondary}`} onClick={() => { setDeleting(false); setActionError(null) }}>Cancel</button>
+          </>
+        ) : (
+          <button className="text-sm text-slate-400" onClick={() => setDeleting(true)}>Delete animal</button>
+        )}
+      </div>
+      <div className="mx-4"><ErrorText error={actionError} /></div>
     </>
   )
 }

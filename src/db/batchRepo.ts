@@ -2,8 +2,8 @@ import { daysBetween } from '../engine/dates'
 import { adg, type Weighing } from '../engine/growth'
 import type { Batch, ISODate, StrategyId } from '../types'
 import { db } from './db'
-import { addEvent, eventsFor } from './eventRepo'
-import { create, liveAll, update, type NewRow } from './repo'
+import { addEvent, eventsFor, tombstoneEventsFor } from './eventRepo'
+import { create, liveAll, softDelete, update, type NewRow } from './repo'
 
 export async function createBatch(data: NewRow<Batch>): Promise<Batch> {
   const name = data.name.trim()
@@ -89,6 +89,7 @@ export async function changeHeadCount(
   reason: HeadCountReason,
   date: ISODate,
   note?: string,
+  extra: Record<string, unknown> = {},
 ): Promise<Batch> {
   const batch = await db.batches.get(batchId)
   if (!batch || batch.deletedAt) throw new Error('Batch not found')
@@ -96,6 +97,20 @@ export async function changeHeadCount(
   const headCount = batch.headCount + delta
   if (headCount < 0) throw new Error(`Head count cannot go below 0 (batch has ${batch.headCount})`)
   const updated = await update(db.batches, batchId, { headCount })
-  await addEvent({ subjectType: 'batch', subjectId: batchId, type: reason, date, data: { delta, headCountAfter: headCount, note: note ?? null } })
+  await addEvent({ subjectType: 'batch', subjectId: batchId, type: reason, date, data: { ...extra, delta, headCountAfter: headCount, note: note ?? null } })
   return updated
+}
+
+// TASK 003 Phase 1 (§7 D2): a batch created by mistake is deleted with its
+// events; a batch a sale names is refused, because the sale's revenue and head
+// count rest on it. Undo the sale first.
+export async function removeBatch(batchId: string): Promise<void> {
+  const batch = await db.batches.get(batchId)
+  if (!batch || batch.deletedAt) throw new Error('Batch not found')
+  const sale = (await liveAll(db.sales)).find((s) => s.lines.some((l) => l.batchId === batchId))
+  if (sale) throw new Error(`${batch.name} has a sale (${sale.date}): undo the sale first`)
+  await db.transaction('rw', db.batches, db.events, async () => {
+    await softDelete(db.batches, batchId)
+    await tombstoneEventsFor('batch', batchId)
+  })
 }

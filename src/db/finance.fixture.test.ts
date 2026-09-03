@@ -3,11 +3,12 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { cashFlow, incomeStatement } from '../engine/finance'
 import { costPerWeanedPiglet, paybackDate, roi } from '../engine/unitCosts'
 import { addAnimal } from './animalRepo'
-import { createBatch, createBatchFromLitter, changeHeadCount } from './batchRepo'
+import { createBatch, createBatchFromLitter, changeHeadCount, recordBatchWeight, removeBatch } from './batchRepo'
 import { computeFarmCosting, herdTotals, type FarmCosting } from './costingRepo'
 import { db } from './db'
+import { eventsFor, undoEvent } from './eventRepo'
 import { recordFarrowing, recordService, recordWeaning } from './litterRepo'
-import { recordSale } from './saleRepo'
+import { recordSale, undoSale } from './saleRepo'
 import { addTransaction } from './transactionRepo'
 
 // PLAN.md section 9, P4 verify column: every report matches a hand-computed fixture.
@@ -27,6 +28,10 @@ import { addTransaction } from './transactionRepo'
 // Herd direct: medicine 200 linked to S1 on 06-05.
 // Piglet cost for Weaners (months Jan-May): herd 1,000 + 620 = 1,620 / 11 weaned = 147.27 per head;
 // piglet value 11 x 147.27 = 1,620. Bought carries no piglet value.
+//
+// TASK 003 step 1.6: three mistakes are made and undone before the reports run (a
+// batch "Oops" deleted, a death on Bought undone, a sale from Bought undone); every
+// figure below must be unchanged, which proves the tombstones are ignored.
 describe('finance fixture', () => {
   let costing: FarmCosting
   let weanersId = ''
@@ -54,6 +59,14 @@ describe('finance fixture', () => {
     await addTransaction({ date: '2026-06-03', kind: 'expense', category: 'feed', amount: 2000, links: { batchId: weanersId } })
     await addTransaction({ date: '2026-06-05', kind: 'expense', category: 'medicineVaccine', amount: 200, links: { animalId: sow.id } })
     await recordSale({ date: '2026-06-30', buyerType: 'viajero', lines: [{ batchId: weanersId, headCount: 10, liveWeightKg: 900, pricePerKg: 185 }] })
+
+    const oops = await createBatch({ name: 'Oops', kind: 'growers', litterIds: [], headCount: 3, startDate: '2026-06-15', strategy: 'undecided' })
+    await recordBatchWeight(oops.id, { date: '2026-06-16', avgKg: 30 })
+    await removeBatch(oops.id)
+    await changeHeadCount(boughtId, -1, 'death', '2026-06-20')
+    await undoEvent((await eventsFor('batch', boughtId)).find((e) => e.type === 'death')!.id)
+    const wrong = await recordSale({ date: '2026-06-25', buyerType: 'market', lines: [{ batchId: boughtId, headCount: 1, pricePerHead: 5000 }] })
+    await undoSale(wrong.id)
     costing = await computeFarmCosting(TODAY)
   })
 

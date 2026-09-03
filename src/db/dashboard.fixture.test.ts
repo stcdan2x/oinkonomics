@@ -1,12 +1,14 @@
 import 'fake-indexeddb/auto'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { addAnimal } from './animalRepo'
-import { changeHeadCount, createBatch, createBatchFromLitter, recordBatchWeight } from './batchRepo'
+import { addAnimal, reactivateAnimal, setAnimalStatus } from './animalRepo'
+import { changeHeadCount, createBatch, createBatchFromLitter, recordBatchWeight, removeBatch } from './batchRepo'
 import { computeDashboard, type DashboardData } from './dashboardRepo'
 import { db } from './db'
+import { eventsFor, undoEvent } from './eventRepo'
 import { createItem, recordStockMove } from './inventoryRepo'
 import { recordFarrowing, recordService, recordWeaning } from './litterRepo'
 import { recordPrice } from './priceLogRepo'
+import { recordSale, undoSale } from './saleRepo'
 import { addTransaction } from './transactionRepo'
 
 // PLAN.md section 9, P7 verify column: seeded data renders correct totals.
@@ -33,6 +35,10 @@ import { addTransaction } from './transactionRepo'
 //   Sep 3,000 x 270 / (270 + 120 + 150) = 1,500     (Weaners 9 x 30, Bought 4 x 30, herd 5 x 30)
 //   cost per kg gained = 9,521.44 / (74 kg x 9 head) = 14.297
 // Herd count at month end, July to September: Jul 5 + 10 = 15; Aug 5 + 10 + 4 = 19; Sep 5 + 9 + 4 = 18.
+//
+// TASK 003 step 1.6: mistakes made and undone before the dashboard runs (a batch
+// "Oops" deleted, a death on Bought undone, a sale from Bought undone, the boar
+// culled and reactivated); every figure below must be unchanged.
 describe('dashboard fixture', () => {
   const TODAY = '2026-09-02'
   let sep: DashboardData
@@ -46,7 +52,7 @@ describe('dashboard fixture', () => {
     const s1 = await addAnimal({ tag: 'S1', role: 'sow', sex: 'female', source: 'bought', birthDate: '2024-01-01' })
     const s2 = await addAnimal({ tag: 'S2', role: 'sow', sex: 'female', source: 'bought' })
     const s3 = await addAnimal({ tag: 'S3', role: 'sow', sex: 'female', source: 'bought' })
-    await addAnimal({ tag: 'B1', role: 'boar', sex: 'male', source: 'bought' })
+    const b1 = await addAnimal({ tag: 'B1', role: 'boar', sex: 'male', source: 'bought' })
     await addAnimal({ tag: 'G1', role: 'gilt', sex: 'female', source: 'born', birthDate: '2026-03-10' })
     await addAnimal({ tag: 'F1', role: 'finisher', sex: 'male', source: 'bought' })
 
@@ -61,7 +67,16 @@ describe('dashboard fixture', () => {
     await recordBatchWeight(weanersId, { date: '2026-08-26', avgKg: 86 })
     await recordService({ sowId: s2.id, serviceDate: '2026-05-24' })
     await recordService({ sowId: s3.id, serviceDate: '2026-05-01' })
-    await createBatch({ name: 'Bought', kind: 'piglets', litterIds: [], headCount: 4, startDate: '2026-08-20', strategy: 'sellWeaners' })
+    const bought = await createBatch({ name: 'Bought', kind: 'piglets', litterIds: [], headCount: 4, startDate: '2026-08-20', strategy: 'sellWeaners' })
+    const oops = await createBatch({ name: 'Oops', kind: 'growers', litterIds: [], headCount: 3, startDate: '2026-08-21', strategy: 'undecided' })
+    await recordBatchWeight(oops.id, { date: '2026-08-22', avgKg: 30 })
+    await removeBatch(oops.id)
+    await changeHeadCount(bought.id, -1, 'death', '2026-09-01')
+    await undoEvent((await eventsFor('batch', bought.id)).find((e) => e.type === 'death')!.id)
+    const wrong = await recordSale({ date: '2026-09-02', buyerType: 'market', lines: [{ batchId: bought.id, headCount: 1, pricePerHead: 5000 }] })
+    await undoSale(wrong.id)
+    await setAnimalStatus(b1.id, 'culled', '2026-08-30', 'mistake')
+    await reactivateAnimal(b1.id)
 
     await addTransaction({ date: '2026-01-10', kind: 'capital', category: 'penConstruction', amount: 50000, links: {} })
     await addTransaction({ date: '2026-07-01', kind: 'expense', category: 'feed', amount: 2000, links: { batchId: weanersId } })

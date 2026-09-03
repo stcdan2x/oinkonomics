@@ -3,7 +3,7 @@ import type { BuyerType, ISODate, Sale, SaleLine } from '../types'
 import { changeHeadCount } from './batchRepo'
 import { db } from './db'
 import { addEvent, eventsFor } from './eventRepo'
-import { create, liveAll, update } from './repo'
+import { create, liveAll, softDelete, update } from './repo'
 
 export interface SaleInput {
   date: ISODate
@@ -76,7 +76,7 @@ export async function recordSale(input: SaleInput): Promise<Sale> {
 
   for (const line of input.lines) {
     if (line.batchId) {
-      await changeHeadCount(line.batchId, -line.headCount, 'sale', input.date, `Sale ${sale.id}`)
+      await changeHeadCount(line.batchId, -line.headCount, 'sale', input.date, `Sale ${sale.id}`, { saleId: sale.id })
     }
     for (const animalId of line.animalIds ?? []) {
       await update(db.animals, animalId, { status: 'sold', statusDate: input.date })
@@ -84,4 +84,35 @@ export async function recordSale(input: SaleInput): Promise<Sale> {
     }
   }
   return { ...sale, transactionId: tx.id }
+}
+
+// TASK 003 Phase 1 (§7 D1): a sale is corrected by undoing it and selling
+// again. One transaction puts every head back, makes each sold animal active,
+// and tombstones the sale, its revenue entry and the events it wrote. Batch
+// sale events written before this task carry the sale id only in their note.
+export async function undoSale(saleId: string): Promise<void> {
+  const sale = await db.sales.get(saleId)
+  if (!sale) throw new Error('Sale not found')
+  if (sale.deletedAt) throw new Error('This sale is already undone')
+  const isThisSale = (e: { type: string; data: Record<string, unknown> }) =>
+    e.type === 'sale' && (e.data.saleId === saleId || e.data.note === `Sale ${saleId}`)
+  await db.transaction('rw', db.sales, db.transactions, db.batches, db.events, db.animals, async () => {
+    for (const line of sale.lines) {
+      if (!line.batchId) continue
+      const batch = await db.batches.get(line.batchId)
+      if (!batch || batch.deletedAt) throw new Error('A batch of this sale was deleted, so the sale cannot be undone')
+      await update(db.batches, batch.id, { headCount: batch.headCount + line.headCount })
+      for (const e of await eventsFor('batch', batch.id)) if (isThisSale(e)) await softDelete(db.events, e.id)
+    }
+    for (const animalId of sale.lines.flatMap((l) => l.animalIds ?? [])) {
+      const animal = await db.animals.get(animalId)
+      if (animal && !animal.deletedAt) await update(db.animals, animalId, { status: 'active', statusDate: undefined })
+      for (const e of await eventsFor('animal', animalId)) if (isThisSale(e)) await softDelete(db.events, e.id)
+    }
+    if (sale.transactionId) {
+      const tx = await db.transactions.get(sale.transactionId)
+      if (tx && !tx.deletedAt) await softDelete(db.transactions, tx.id)
+    }
+    await softDelete(db.sales, saleId)
+  })
 }

@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import PageHeader from '../../components/PageHeader'
 import PeriodPicker, { usePeriod } from '../../components/PeriodPicker'
+import { Link } from 'react-router-dom'
 import { Badge, Card, Empty, LinkButton, peso, SubNav } from '../../components/ui'
 import { db } from '../../db/db'
 import { listTransactions, removeTransaction } from '../../db/transactionRepo'
@@ -113,7 +114,10 @@ function LedgerRow({ tx, link }: { tx: Transaction; link: string | null }) {
         ) : confirming ? (
           <button type="button" className="text-xs font-semibold text-red-600" onClick={() => removeTransaction(tx.id)}>Confirm delete</button>
         ) : (
-          <button type="button" className="text-xs text-slate-400" onClick={() => setConfirming(true)}>Delete</button>
+          <span className="flex gap-2 text-xs">
+            <Link to={`/finance/${tx.id}/edit`} className="text-slate-400">Edit</Link>
+            <button type="button" className="text-slate-400" onClick={() => setConfirming(true)}>Delete</button>
+          </span>
         )}
       </div>
     </div>

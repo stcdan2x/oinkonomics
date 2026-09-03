@@ -1,12 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useState, type FormEvent } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useState, type FormEvent } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import PageHeader from '../../components/PageHeader'
 import { btnPrimary, btnSecondary, Card, ErrorText, Field, inputCls } from '../../components/ui'
 import GuideLink from '../../components/GuideLink'
 import { listBreeders } from '../../db/animalRepo'
 import { listBatches } from '../../db/batchRepo'
-import { addTransaction } from '../../db/transactionRepo'
+import { db } from '../../db/db'
+import { addTransaction, updateTransaction } from '../../db/transactionRepo'
 import { todayISO } from '../../engine/dates'
 import { categoriesFor, KIND_LABEL } from '../../knowledge/categories'
 import type { TransactionKind } from '../../types'
@@ -15,9 +16,13 @@ import { ROLE_LABEL } from '../herd/labels'
 const KINDS = Object.keys(KIND_LABEL) as TransactionKind[]
 
 // "Applies to" is encoded as `batch:<id>` or `animal:<id>`; empty means shared
-// (whole farm), which the costing engine allocates by head-days.
+// (whole farm), which the costing engine allocates by head-days. With an `id`
+// in the route (`/finance/:id/edit`, TASK 003) the same form edits a typed
+// entry; what it applies to stays as it was.
 export default function TransactionFormPage() {
   const navigate = useNavigate()
+  const { id } = useParams()
+  const existing = useLiveQuery(() => (id ? db.transactions.get(id) : undefined), [id])
   const [params] = useSearchParams()
   const batches = useLiveQuery(() => listBatches({ includeEmpty: true }), []) ?? []
   const breeders = useLiveQuery(() => listBreeders(), []) ?? []
@@ -30,6 +35,16 @@ export default function TransactionFormPage() {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
+  useEffect(() => {
+    if (!existing) return
+    setKind(existing.kind)
+    setCategory(existing.category)
+    setDate(existing.date)
+    setAmount(String(existing.amount))
+    setNote(existing.note ?? '')
+    setTarget(existing.links.batchId ? `batch:${existing.links.batchId}` : existing.links.animalId ? `animal:${existing.links.animalId}` : '')
+  }, [existing])
+
   const changeKind = (k: TransactionKind) => {
     setKind(k)
     setCategory(categoriesFor(k)[0].id)
@@ -40,15 +55,19 @@ export default function TransactionFormPage() {
     setError(null)
     setSaving(true)
     try {
-      const [type, id] = target.split(':')
-      await addTransaction({
-        date,
-        kind,
-        category,
-        amount: Number(amount),
-        note,
-        links: type === 'batch' ? { batchId: id } : type === 'animal' ? { animalId: id } : {},
-      })
+      if (id) {
+        await updateTransaction(id, { date, kind, category, amount: Number(amount), note })
+      } else {
+        const [type, targetId] = target.split(':')
+        await addTransaction({
+          date,
+          kind,
+          category,
+          amount: Number(amount),
+          note,
+          links: type === 'batch' ? { batchId: targetId } : type === 'animal' ? { animalId: targetId } : {},
+        })
+      }
       navigate(-1)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -59,7 +78,7 @@ export default function TransactionFormPage() {
 
   return (
     <>
-      <PageHeader title="Record a transaction" subtitle="Expenses, revenue, capital purchases, drawings and loans" />
+      <PageHeader title={id ? 'Edit transaction' : 'Record a transaction'} subtitle="Expenses, revenue, capital purchases, drawings and loans" />
       <form onSubmit={submit}>
         <Card action={<GuideLink id="money-rules" />}>
           <Field label="Kind">
@@ -79,7 +98,7 @@ export default function TransactionFormPage() {
             <input type="number" inputMode="decimal" min="0.01" step="0.01" className={inputCls} value={amount} onChange={(e) => setAmount(e.target.value)} required />
           </Field>
           <Field label="Applies to" hint="Shared costs are split across batches and the breeding herd by head-days.">
-            <select className={inputCls} value={target} onChange={(e) => setTarget(e.target.value)}>
+            <select className={inputCls} value={target} onChange={(e) => setTarget(e.target.value)} disabled={!!id}>
               <option value="">Shared (whole farm)</option>
               {batches.length > 0 && (
                 <optgroup label="Batches">

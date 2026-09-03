@@ -116,7 +116,7 @@ If she returns to heat, or the pregnancy check is negative, or she aborts, open 
 
 When she farrows, open the litter (from her card, from **Litters** or from the calendar). The **Record farrowing** card asks for the **Farrowing date**, **Born alive**, **Stillborn** and **Mummified**. Tap **Save farrowing**.
 
-The card now shows the litter's **Piglet care schedule** with each date, marked past once it has gone by, and the sow shows **Lactating** with her weaning date. A farrowing cannot be undone from the list, because the piglets' care dates and the later weaning depend on it; if a figure was wrong, see [fix mistakes](/guide/fix-mistakes). The farrowing-week checklist is one tap away on the card: [farrowing week checklist](/guide/farrowing-week-checklist).
+The card now shows the litter's **Piglet care schedule** with each date, marked past once it has gone by, and the sow shows **Lactating** with her weaning date. A wrong date or count is corrected on the litter page with **Edit farrowing**, and a farrowing recorded on the wrong litter is taken back with **Undo farrowing**, both until the litter is weaned; see [fix mistakes](/guide/fix-mistakes). The farrowing-week checklist is one tap away on the card: [farrowing week checklist](/guide/farrowing-week-checklist).
 
 ## Record the weaning
 
@@ -192,11 +192,11 @@ A breeder that dies or is culled without a sale is recorded with **Cull / died**
 One sale writes several records at once, so you never enter it twice:
 
 - The batch's head count drops by the pigs sold, and a sale event goes into its **History**; a sold-out batch stays in the costing with its lifetime result.
-- The ledger gets one revenue entry in the category **Hog sales** for the total, dated the sale date, linked to the batch or animal, with a note naming the buyer. It shows in **Ledger** marked as coming from a sale, and it cannot be deleted from the ledger.
+- The ledger gets one revenue entry in the category **Hog sales** for the total, dated the sale date, linked to the batch or animal, with a note naming the buyer. It shows in **Ledger** marked as coming from a sale; it has no edit or delete of its own and goes when the sale is undone.
 - The batch's **Costing** now shows **Revenue** and **Profit**, the cost per kg sold and the break-even at the real weight sold.
 - The dashboard's revenue, profit and cash on hand move with it.
 
-Every sale is listed under **Herd**, **Sales**, with the date, head, total, buyer and batch. A wrong sale cannot be edited; see [fix mistakes](/guide/fix-mistakes) for how to correct one.
+Every sale is listed under **Herd**, **Sales**, with the date, head, total, buyer and batch. A wrong sale is taken back from its row with **Undo sale** and then **Confirm undo**: the pigs return to the batch or the animal becomes active again, and the revenue entry goes; then sell again with the right figures. See [fix mistakes](/guide/fix-mistakes).
 
 ## Log the price too
 
@@ -246,7 +246,7 @@ Then **Save**. Opening the form from a batch page (**Record expense**) or from a
 
 **Ledger** lists the entries of the chosen period (the period buttons and dates at the top, see [read the reports](/guide/read-the-reports)), newest first, each with its category, its kind, the batch or animal it applies to, and the note. Money out shows as a negative amount, money in as positive. The three figures above the list, **Revenue**, **Expenses** and **Net**, count operating entries only; capital purchases, drawings and loans are listed but left out of those totals.
 
-An entry that came from a sale or from a stock purchase says so under its amount and has no delete button: correct it at its source, see [fix mistakes](/guide/fix-mistakes). Any other entry can be removed with **Delete** and then **Confirm delete**; there is no edit, so a wrong entry is deleted and entered again.
+An entry that came from a sale or from a stock purchase says so under its amount and has no delete button: correct it at its source, see [fix mistakes](/guide/fix-mistakes). Any other entry can be changed with **Edit**, which opens the transaction form filled in (what the entry applies to stays as it was), or removed with **Delete** and then **Confirm delete**.
 
 > Keep the paper. The app records the amount, the date and your note; the receipt itself, the buyer's name and the weighing slip stay in a folder, dated, because that is what a permit inspection or a tax question will ask for. See [keep the books](/guide/keep-the-books).`,
     sources: [],
@@ -430,41 +430,58 @@ With sync on and a monthly export in a safe place, losing a phone costs you noth
     summary: 'What can be edited, what can be deleted, what cannot be undone, and the honest way to correct each kind of wrong entry.',
     body: `## The rule
 
-The app is a record book: most entries are written once and kept, so the history stays true and a later sync cannot resurrect a half-corrected record. A few things can be edited, more can be deleted, and the rest are corrected by a new entry that puts the figures right while the wrong one stays visible in the history. Deleting hides the record and marks it deleted; the mark travels to your other device on the next sync, so a deletion made on the phone also disappears from the desktop, see [how Oinkonomics works](/guide/how-the-app-works).
+The app is a record book, so every entry stays visible until you correct it, and a correction is made at the record itself. A few things are edited in place. Most wrong entries are undone, which reverses everything they changed, and then entered again. A record created by mistake is deleted. An undo or a delete hides the record and marks it deleted; the mark travels to your other device on the next sync, so the record does not come back.
+
+> Sync before you correct the same record on two devices. The newer change wins on the next sync, so an edit made on the phone after a delete made on the laptop would bring the record back.
 
 ## What can be edited
 
-- The farm profile: **Settings**, **Edit farm profile**.
-- An inventory item's name, category, unit, kg per unit, reorder level, unit cost and expiry: **Edit item** on the item page. The quantity is never edited directly; use a count adjustment.
+| Record | Where | What can change |
+|---|---|---|
+| The farm profile | **Settings**, **Edit farm profile** | Everything on it. |
+| An inventory item | **Edit item** on the item page | Name, category, unit, kg per unit, reorder level, unit cost, expiry. The quantity is never edited directly; use a count adjustment. |
+| A weighing | The batch's **History**, **Edit** on the row | Date, average kg, pigs weighed. The growth figures follow. |
+| A treatment, vaccination, deworming or iron shot | The **History** of the batch or animal, **Edit** on the row | Date, product, withdrawal days, dose, note. The withdrawal date and the sale block follow. |
+| A farrowing | The litter page, **Edit farrowing**, until the litter is weaned | Date, born alive, stillborn, mummified. The care schedule follows. |
+| A weaning | The litter page, **Edit weaning**, until a batch is made from the litter | Date and piglets weaned. |
+| A ledger entry you typed | **Finance**, **Ledger**, **Edit** on the entry | Kind, category, date, amount, note. What it applies to stays. Entries that came from a sale or a stock purchase have no edit; see below. |
+
+## What can be undone
+
+Each undo takes two taps, the action and then its confirmation, and reverses what the record did.
+
+| Wrong record | Where | What comes back |
+|---|---|---|
+| A sale | **Herd**, **Sales**, **Undo sale**, then **Confirm undo** | The pigs return to the batch, a sold animal is active again, the revenue entry and the sale events go. Sell again with the right figures. |
+| A death, cull or move-out on a batch | The batch's **History**, **Undo**, then **Confirm undo** | The head count goes back up; the mortality figure and the cost allocation follow. |
+| A breeder marked culled or died | The animal card, **Reactivate** (or **Undo** on the row in its **History**) | The animal is active again with no status date. A sold breeder comes back through the sale's undo. |
+| A weighing or a health event | Its row in **History**, **Undo**, then **Confirm undo** | The record goes; the growth figures and the withdrawal date follow. |
+| A farrowing | The litter page, **Undo farrowing**, then confirm, until the litter is weaned | The litter is pregnant again, with its expected date and the farrowing event gone. |
+| A weaning | The litter page, **Undo weaning**, then confirm, until a batch is made from it | The litter is lactating again. To change a weaning after the batch exists, delete the batch first (possible while nothing was sold from it). |
+| A litter closed as not pregnant or aborted | The litter page, **Reopen litter**, then confirm | The litter is open again with the original service date. Refused while the sow has another open litter. |
 
 ## What can be deleted
 
 | Record | Where | What happens |
 |---|---|---|
-| A ledger entry you typed | **Finance**, **Ledger**: **Delete**, then **Confirm delete** | The entry is gone from the reports and the costing. Entries that came from a sale or a stock purchase have no delete here; see below. |
+| A ledger entry you typed | **Finance**, **Ledger**: **Delete**, then **Confirm delete** | The entry is gone from the reports and the costing. |
 | A stock move: a purchase, a feeding, an adjustment or a loss | The item's page: **Delete**, then **Confirm delete**; today's feedings also on **Daily feed** | The quantity on hand is recounted from the remaining moves. Deleting a purchase also deletes its ledger entry, so the money and the stock agree. |
 | A logged price | **Plan**, **Prices**: delete, then confirm | The recommendation falls back to the next latest price or the default. |
 | A scenario | Its page: **Delete scenario**, then **Tap again to delete** | Removed from the side-by-side table. |
+| An animal created by mistake | The animal card, **Delete animal**, then **Confirm delete** | The animal and its events go. Refused, with the reason shown, while the animal has a litter, a sale or a purchase entry in the ledger: undo or delete those first, or keep the animal and mark it culled. |
+| A batch created by mistake | The batch page, **Delete batch**, then **Confirm delete** | The batch, its weighings and its events go. Refused while a sale names the batch: undo the sale first. A litter the batch was made from can be given a new batch. |
 
-There is no edit for any of these: delete the wrong one and enter it again correctly.
-
-## What cannot be undone, and how to correct it
+## What is corrected by a new entry
 
 | Wrong record | Correction |
 |---|---|
-| A sale (wrong amount, head, buyer or date) | The sale, its revenue entry and the head-count change stay. Wrong amount: add a ledger entry for the difference, **Other income** if you were underpaid in the record or **Other** expense if overpaid, with a note naming the sale. Wrong head count: too many recorded as sold cannot be put back into the batch; too few can be sold again in a second sale. |
 | A stock purchase entered with the wrong figures | Delete the purchase move on the item's page (this also removes the ledger entry) and buy again with the right figures. |
-| A weighing with the wrong average | Weighings stay. Record a new weighing with the right average, dated the next day, and put the reason in the batch's next health-event note or in a ledger note; the growth figures use the latest weighings. |
-| A treatment, vaccination or deworming on the wrong animal or batch | It stays. Record it again on the right one. If the withdrawal date it created is wrong, know that the sale form only blocks the batch that carries it; the acknowledgement tick lets you sell when you are sure. |
-| A death or removal recorded by mistake | The head count stays down. If the pigs are still there, create a batch for them with **New batch** on the Batches tab, or, for a single breeder, add it again with **Add animal**. |
-| A farrowing or weaning with wrong numbers | They stay, and the litter, the batch's head count and the piglet value use them. Correct the batch's head count with **Deaths / removals** (too many) or a new batch (too few), and note the reason. |
-| A litter closed as not pregnant by mistake | Record the service again from the sow's card with the original date; the app computes the same dates. |
-| A breeder marked culled or died by mistake | Add the animal again with **Add animal** under the same tag; the old card stays in the herd history as removed. |
-| An animal or batch created by mistake | A breeder: **Cull / died**, **Culled (removed, not sold here)**, with the note "created by mistake". A batch: **Deaths / removals**, **Moved out**, for its whole head count, with the same note; it then stays out of the lists. |
+| A service with the wrong date or boar | There is no edit for a service. While the litter has no farrowing, close it with **Not pregnant / aborted** and a note saying so, then record the service again from the sow's card with the right details. |
+| A sale with only the buyer's name wrong | Undo the sale and sell again, or leave it and put the right name in the revenue entry's note through the sale's undo and re-entry. The buyer is part of the sale, not of the ledger entry. |
 
 ## Keep the note honest
 
-Every correction above takes a note. Write what really happened ("entered 12 head, sold 10") rather than a bare "correction", because the note is what you, or the person checking the books, will read a year later. Corrections that change money should also be checked on the reports for the month, see [read the reports](/guide/read-the-reports).`,
+Every correction that leaves a record behind takes a note. Write what really happened ("entered 12 head, sold 10") rather than a bare "correction", because the note is what you, or the person checking the books, will read a year later. Corrections that change money should also be checked on the reports for the month, see [read the reports](/guide/read-the-reports).`,
     sources: [],
   },
   {

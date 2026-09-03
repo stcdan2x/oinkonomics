@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from './db'
-import { addTransaction, listTransactions, removeTransaction } from './transactionRepo'
+import { addTransaction, listTransactions, removeTransaction, updateTransaction } from './transactionRepo'
 
 beforeEach(async () => {
   await db.transactions.clear()
@@ -61,5 +61,30 @@ describe('listTransactions', () => {
     expect(await listTransactions({})).toHaveLength(0)
     const row = await db.transactions.get(tx.id)
     expect(row?.deletedAt).toBe(row?.updatedAt)
+  })
+})
+
+// TASK 003 Phase 1, step 1.5: typed ledger entries can be edited; entries that
+// came from a sale or a stock purchase are corrected at their source.
+describe('updateTransaction', () => {
+  it('edits the fields of a typed entry with the same validation as adding one', async () => {
+    const tx = await addTransaction({ date: '2026-03-02', kind: 'loan', category: 'loan', amount: 50000, note: "owner's money", links: {} })
+    const edited = await updateTransaction(tx.id, { date: '2026-03-01', amount: 60000, note: ' start cash ' })
+    expect(edited).toMatchObject({ date: '2026-03-01', kind: 'loan', category: 'loan', amount: 60000, note: 'start cash' })
+    expect(edited.updatedAt > tx.updatedAt).toBe(true)
+    expect(await db.transactions.get(tx.id)).toMatchObject({ amount: 60000 })
+    await expect(updateTransaction(tx.id, { amount: 0 })).rejects.toThrow(/amount/i)
+    await expect(updateTransaction(tx.id, { kind: 'expense' })).rejects.toThrow(/category/i)
+    expect((await updateTransaction(tx.id, { kind: 'expense', category: 'feed' })).kind).toBe('expense')
+  })
+
+  it('refuses an entry linked to a sale or a stock item, and a deleted one', async () => {
+    const sale = await addTransaction({ date: '2026-03-02', kind: 'revenue', category: 'hogSales', amount: 100, links: { saleId: 's1' } })
+    const stock = await addTransaction({ date: '2026-03-02', kind: 'expense', category: 'feed', amount: 100, links: { itemId: 'i1' } })
+    await expect(updateTransaction(sale.id, { amount: 200 })).rejects.toThrow(/sale/i)
+    await expect(updateTransaction(stock.id, { amount: 200 })).rejects.toThrow(/stock/i)
+    const gone = await addTransaction({ date: '2026-03-02', kind: 'expense', category: 'feed', amount: 100, links: {} })
+    await removeTransaction(gone.id)
+    await expect(updateTransaction(gone.id, { amount: 200 })).rejects.toThrow(/not found/i)
   })
 })

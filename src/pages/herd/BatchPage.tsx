@@ -1,11 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import PageHeader from '../../components/PageHeader'
 import { Badge, btnDanger, btnPrimary, btnSecondary, Card, Empty, ErrorText, Field, inputCls, LinkButton, Row } from '../../components/ui'
 import GuideLink from '../../components/GuideLink'
 import { STRATEGY_ARTICLE } from '../../guide/types'
-import { batchSummary, changeHeadCount, recordBatchWeight, weightsForBatch, type HeadCountReason } from '../../db/batchRepo'
+import { batchSummary, changeHeadCount, recordBatchWeight, removeBatch, weightsForBatch, type HeadCountReason } from '../../db/batchRepo'
 import { db } from '../../db/db'
 import { computeFarmCosting } from '../../db/costingRepo'
 import { eventsFor } from '../../db/eventRepo'
@@ -33,6 +33,9 @@ export default function BatchPage() {
   const events = useLiveQuery(() => eventsFor('batch', id), [id]) ?? []
   const costingRow = useLiveQuery(async () => (await computeFarmCosting(today)).batches.find((r) => r.batch.id === id), [id, today])
   const [panel, setPanel] = useState<Panel>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const navigate = useNavigate()
   if (batch === undefined) return null
   if (!batch || batch.deletedAt) return <PageHeader title="Batch not found" />
 
@@ -83,6 +86,17 @@ export default function BatchPage() {
         {!weights.length ? <Empty>No weighings yet.</Empty> : weights.map((w) => <Row key={w.date + w.kg} label={w.date}>{w.kg} kg avg</Row>)}
       </Card>
       <EventList subjectType="batch" subjectId={batch.id} />
+      <div className="mx-4 mb-4 flex flex-wrap items-center gap-2">
+        {deleting ? (
+          <>
+            <button className={`text-sm ${btnDanger}`} onClick={async () => { try { await removeBatch(batch.id); navigate('/herd/batches') } catch (e) { setDeleteError(e instanceof Error ? e.message : String(e)) } }}>Confirm delete</button>
+            <button className={`text-sm ${btnSecondary}`} onClick={() => { setDeleting(false); setDeleteError(null) }}>Cancel</button>
+          </>
+        ) : (
+          <button className="text-sm text-slate-400" onClick={() => setDeleting(true)}>Delete batch</button>
+        )}
+      </div>
+      <div className="mx-4"><ErrorText error={deleteError} /></div>
     </>
   )
 }

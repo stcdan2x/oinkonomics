@@ -2,7 +2,7 @@ import { isValid, parseISO } from 'date-fns'
 import { categoriesFor } from '../knowledge/categories'
 import type { ISODate, Transaction, TransactionKind } from '../types'
 import { db } from './db'
-import { create, softDelete, type NewRow } from './repo'
+import { create, softDelete, update, type NewRow } from './repo'
 
 export type TransactionInput = NewRow<Transaction>
 
@@ -37,6 +37,19 @@ export async function listTransactions(filter: TransactionFilter): Promise<Trans
   return rows
     .filter((t) => !t.deletedAt && (!filter.kind || t.kind === filter.kind))
     .sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt.localeCompare(a.updatedAt))
+}
+
+// TASK 003 Phase 1 (§7 D3): a typed entry is edited in place. Entries a sale
+// or a stock purchase wrote are corrected at their source, so the money and
+// the record it came from stay in step.
+export async function updateTransaction(id: string, patch: Partial<Omit<TransactionInput, 'links'>>): Promise<Transaction> {
+  const existing = await db.transactions.get(id)
+  if (!existing || existing.deletedAt) throw new Error('Entry not found')
+  if (existing.links.saleId) throw new Error('This entry came from a sale: undo the sale to change it')
+  if (existing.links.itemId) throw new Error('This entry came from a stock purchase: delete the purchase on the item to change it')
+  const merged = { ...existing, ...patch }
+  validateTransaction(merged)
+  return update(db.transactions, id, { ...patch, note: merged.note?.trim() || undefined })
 }
 
 export async function removeTransaction(id: string): Promise<void> {

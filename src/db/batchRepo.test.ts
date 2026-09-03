@@ -1,13 +1,14 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { addAnimal } from './animalRepo'
-import { batchSummary, changeHeadCount, createBatch, createBatchFromLitter, listBatches, recordBatchWeight, weightsForBatch } from './batchRepo'
+import { batchSummary, changeHeadCount, createBatch, createBatchFromLitter, listBatches, recordBatchWeight, removeBatch, weightsForBatch } from './batchRepo'
 import { db } from './db'
 import { recordFarrowing, recordService, recordWeaning } from './litterRepo'
+import { recordSale } from './saleRepo'
 
 describe('batch repository', () => {
   beforeEach(async () => {
-    await Promise.all([db.animals.clear(), db.litters.clear(), db.events.clear(), db.batches.clear()])
+    await Promise.all([db.animals.clear(), db.litters.clear(), db.events.clear(), db.batches.clear(), db.sales.clear(), db.transactions.clear()])
   })
 
   it('creates a batch and lists live batches', async () => {
@@ -55,5 +56,28 @@ describe('batch repository', () => {
     const ev = await db.events.where('subjectId').equals(b.id).toArray()
     expect(ev.map((e) => e.type)).toEqual(['death'])
     expect(ev[0].data).toMatchObject({ delta: -2, note: 'scours' })
+  })
+})
+
+// TASK 003 Phase 1, step 1.4: a batch created by mistake is deleted with its
+// events, unless a sale names it.
+describe('removeBatch', () => {
+  beforeEach(async () => {
+    await Promise.all([db.animals.clear(), db.litters.clear(), db.events.clear(), db.batches.clear(), db.sales.clear(), db.transactions.clear()])
+  })
+
+  it('tombstones the batch and its events, and refuses a batch with a sale', async () => {
+    const b = await createBatch({ name: 'Oops', kind: 'growers', litterIds: [], headCount: 4, startDate: '2026-05-01', strategy: 'undecided' })
+    await recordBatchWeight(b.id, { date: '2026-05-02', avgKg: 20 })
+    await changeHeadCount(b.id, -1, 'death', '2026-05-03')
+    await removeBatch(b.id)
+    expect((await db.batches.get(b.id))!.deletedAt).toBeTruthy()
+    expect((await db.events.where('subjectId').equals(b.id).toArray()).every((e) => e.deletedAt)).toBe(true)
+    expect(await listBatches({ includeEmpty: true })).toEqual([])
+    await expect(removeBatch(b.id)).rejects.toThrow(/not found/i)
+    const sold = await createBatch({ name: 'Sold', kind: 'finishers', litterIds: [], headCount: 4, startDate: '2026-05-01', strategy: 'growToMarket' })
+    await recordSale({ date: '2026-06-10', buyerType: 'viajero', lines: [{ batchId: sold.id, headCount: 1, pricePerHead: 6000 }] })
+    await expect(removeBatch(sold.id)).rejects.toThrow(/sale/i)
+    expect((await db.batches.get(sold.id))!.deletedAt).toBeNull()
   })
 })

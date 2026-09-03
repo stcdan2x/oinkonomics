@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { addAnimal } from './animalRepo'
 import { createBatch } from './batchRepo'
 import { db } from './db'
-import { recordTreatment } from './eventRepo'
-import { listSales, recordSale, saleTotal } from './saleRepo'
+import { eventsFor, recordTreatment } from './eventRepo'
+import { softDelete } from './repo'
+import { listSales, recordSale, saleTotal, undoSale } from './saleRepo'
 
 describe('sale repository', () => {
   beforeEach(async () => {
@@ -57,5 +58,39 @@ describe('sale repository', () => {
     expect(s.total).toBe(6000)
     const ok = await recordSale({ date: '2026-06-29', buyerType: 'viajero', lines: [line] })
     expect(ok.total).toBe(6000)
+  })
+})
+
+// TASK 003 Phase 1, step 1.2: undoing a sale reverses everything it wrote.
+describe('undoSale', () => {
+  beforeEach(async () => {
+    await Promise.all([db.animals.clear(), db.batches.clear(), db.events.clear(), db.sales.clear(), db.transactions.clear()])
+  })
+
+  it('restores the head count and the animal, tombstones the sale, its revenue entry and its events', async () => {
+    const b = await createBatch({ name: 'W', kind: 'piglets', litterIds: [], headCount: 11, startDate: '2026-05-25', strategy: 'sellWeaners' })
+    const sow = await addAnimal({ tag: 'S-01', role: 'sow', sex: 'female', source: 'bought' })
+    const s = await recordSale({ date: '2026-06-10', buyerType: 'viajero', lines: [{ batchId: b.id, headCount: 8, pricePerHead: 3500 }, { animalIds: [sow.id], headCount: 1, pricePerHead: 9000 }] })
+    expect((await db.batches.get(b.id))!.headCount).toBe(3)
+    await undoSale(s.id)
+    expect((await db.batches.get(b.id))!.headCount).toBe(11)
+    const a = (await db.animals.get(sow.id))!
+    expect(a.status).toBe('active')
+    expect(a.statusDate).toBeUndefined()
+    expect((await db.transactions.get(s.transactionId!))!.deletedAt).toBeTruthy()
+    expect((await db.sales.get(s.id))!.deletedAt).toBeTruthy()
+    expect(await eventsFor('batch', b.id)).toEqual([])
+    expect(await eventsFor('animal', sow.id)).toEqual([])
+    expect(await listSales()).toEqual([])
+    await expect(undoSale(s.id)).rejects.toThrow(/already/i)
+  })
+
+  it('refuses when a batch of the sale was deleted, and leaves everything as it was', async () => {
+    const b = await createBatch({ name: 'W', kind: 'growers', litterIds: [], headCount: 5, startDate: '2026-05-25', strategy: 'undecided' })
+    const s = await recordSale({ date: '2026-06-10', buyerType: 'market', lines: [{ batchId: b.id, headCount: 2, pricePerHead: 6000 }] })
+    await softDelete(db.batches, b.id)
+    await expect(undoSale(s.id)).rejects.toThrow(/batch/i)
+    expect((await db.sales.get(s.id))!.deletedAt).toBeNull()
+    expect((await db.transactions.get(s.transactionId!))!.deletedAt).toBeNull()
   })
 })

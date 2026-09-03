@@ -2,7 +2,7 @@ import { expectedFarrowDate, isOpenLitter } from '../engine/breeding'
 import type { ISODate, Litter } from '../types'
 import { db } from './db'
 import { addEvent } from './eventRepo'
-import { create, liveWhere, update } from './repo'
+import { create, liveAll, liveWhere, softDelete, update } from './repo'
 
 export interface ServiceInput {
   sowId: string
@@ -101,4 +101,87 @@ export async function recordWeaning(
   const l = await update(db.litters, litterId, input)
   await addEvent({ subjectType: 'litter', subjectId: litterId, type: 'weaning', date: input.weanDate, data: { weanedCount: input.weanedCount } })
   return l
+}
+
+// TASK 003 Phase 1 (§7 D1): the farrowing and weaning figures can be edited or
+// undone while nothing rests on them: the farrowing until the litter is
+// weaned, the weaning until a batch is made from the litter. A litter closed
+// as not pregnant or aborted by mistake reopens. Each change rewrites or
+// tombstones the litter's event in the same transaction.
+async function liveLitter(litterId: string): Promise<Litter> {
+  const l = await db.litters.get(litterId)
+  if (!l || l.deletedAt) throw new Error('Litter not found')
+  return l
+}
+
+async function litterEvents(litterId: string, type: 'farrowing' | 'weaning' | 'note') {
+  const rows = await db.events.where('[subjectType+subjectId]').equals(['litter', litterId]).toArray()
+  return rows.filter((e) => !e.deletedAt && e.type === type)
+}
+
+const batchOfLitter = async (litterId: string) => (await liveAll(db.batches)).find((b) => b.litterIds.includes(litterId))
+
+export async function updateFarrowing(
+  litterId: string,
+  patch: { farrowDate?: ISODate; bornAlive?: number; stillborn?: number; mummified?: number },
+): Promise<Litter> {
+  const l = await liveLitter(litterId)
+  if (!l.farrowDate) throw new Error('No farrowing is recorded for this litter')
+  if (l.weanDate) throw new Error('Undo the weaning first: the farrowing figures are fixed once the litter is weaned')
+  const next = { farrowDate: patch.farrowDate ?? l.farrowDate, bornAlive: patch.bornAlive ?? l.bornAlive, stillborn: patch.stillborn ?? l.stillborn, mummified: patch.mummified ?? l.mummified }
+  nonNegativeInt(next.bornAlive, 'Born alive')
+  nonNegativeInt(next.stillborn, 'Stillborn')
+  nonNegativeInt(next.mummified, 'Mummified')
+  return db.transaction('rw', db.litters, db.events, async () => {
+    for (const e of await litterEvents(litterId, 'farrowing')) {
+      await update(db.events, e.id, { date: next.farrowDate, data: { bornAlive: next.bornAlive, stillborn: next.stillborn, mummified: next.mummified } })
+    }
+    return update(db.litters, litterId, next)
+  })
+}
+
+export async function undoFarrowing(litterId: string): Promise<Litter> {
+  const l = await liveLitter(litterId)
+  if (!l.farrowDate) throw new Error('No farrowing is recorded for this litter')
+  if (l.weanDate) throw new Error('Undo the weaning first')
+  return db.transaction('rw', db.litters, db.events, async () => {
+    for (const e of await litterEvents(litterId, 'farrowing')) await softDelete(db.events, e.id)
+    return update(db.litters, litterId, { farrowDate: undefined, bornAlive: 0, stillborn: 0, mummified: 0, outcome: undefined })
+  })
+}
+
+export async function updateWeaning(litterId: string, patch: { weanDate?: ISODate; weanedCount?: number }): Promise<Litter> {
+  const l = await liveLitter(litterId)
+  if (!l.weanDate) throw new Error('No weaning is recorded for this litter')
+  const batch = await batchOfLitter(litterId)
+  if (batch) throw new Error(`Batch ${batch.name} was made from this litter: delete the batch first`)
+  const next = { weanDate: patch.weanDate ?? l.weanDate, weanedCount: patch.weanedCount ?? l.weanedCount }
+  nonNegativeInt(next.weanedCount, 'Weaned count')
+  if (next.weanedCount > l.bornAlive) throw new Error(`Weaned count cannot exceed born alive (${l.bornAlive})`)
+  return db.transaction('rw', db.litters, db.events, async () => {
+    for (const e of await litterEvents(litterId, 'weaning')) await update(db.events, e.id, { date: next.weanDate, data: { weanedCount: next.weanedCount } })
+    return update(db.litters, litterId, next)
+  })
+}
+
+export async function undoWeaning(litterId: string): Promise<Litter> {
+  const l = await liveLitter(litterId)
+  if (!l.weanDate) throw new Error('No weaning is recorded for this litter')
+  const batch = await batchOfLitter(litterId)
+  if (batch) throw new Error(`Batch ${batch.name} was made from this litter: delete the batch first`)
+  return db.transaction('rw', db.litters, db.events, async () => {
+    for (const e of await litterEvents(litterId, 'weaning')) await softDelete(db.events, e.id)
+    return update(db.litters, litterId, { weanDate: undefined, weanedCount: 0 })
+  })
+}
+
+export async function reopenLitter(litterId: string): Promise<Litter> {
+  const l = await liveLitter(litterId)
+  if (l.outcome !== 'notPregnant' && l.outcome !== 'aborted') throw new Error('This litter is not closed')
+  const open = (await littersForSow(l.sowId)).find((x) => x.id !== litterId && isOpenLitter(x))
+  if (open) throw new Error(`The sow already has an open litter (served ${open.serviceDate}); close it first`)
+  return db.transaction('rw', db.litters, db.events, async () => {
+    for (const e of await litterEvents(litterId, 'note')) if (e.data.outcome) await softDelete(db.events, e.id)
+    return update(db.litters, litterId, { outcome: undefined })
+  })
 }

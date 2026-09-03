@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import PageHeader from '../../components/PageHeader'
 import { Badge, btnPrimary, btnSecondary, Card, Empty, ErrorText, Field, inputCls, LinkButton, ListItem, peso, SubNav } from '../../components/ui'
 import GuideLink from '../../components/GuideLink'
@@ -8,7 +9,7 @@ import { listBreeders } from '../../db/animalRepo'
 import { batchSummary, createBatch, listBatches } from '../../db/batchRepo'
 import { db } from '../../db/db'
 import { latestLitterForSow, openLitters } from '../../db/litterRepo'
-import { listSales } from '../../db/saleRepo'
+import { listSales, undoSale } from '../../db/saleRepo'
 import { liveAll } from '../../db/repo'
 import { breedingCalendar, sowStage } from '../../engine/breeding'
 import { plusDays, todayISO } from '../../engine/dates'
@@ -207,9 +208,22 @@ function CalendarTab() {
   )
 }
 
+// TASK 003 Phase 1: a wrong sale is undone from its row (two taps); the head
+// count, the animal and the revenue entry come back with it.
 function SalesTab() {
   const sales = useLiveQuery(listSales, [])
   const batches = useLiveQuery(() => listBatches({ includeEmpty: true }), [])
+  const [confirming, setConfirming] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  async function undo(id: string) {
+    setError(null)
+    try {
+      await undoSale(id)
+      setConfirming(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    }
+  }
   return (
     <Card title="Sales">
       {!sales?.length ? (
@@ -220,15 +234,21 @@ function SalesTab() {
           const batchId = s.lines.find((l) => l.batchId)?.batchId
           const name = batchId ? batches?.find((b) => b.id === batchId)?.name : 'individual animal'
           return (
-            <ListItem
-              key={s.id}
-              to={batchId ? `/herd/batches/${batchId}` : '/herd'}
-              title={`${s.date}: ${head} head, ${peso(s.total)}`}
-              subtitle={`${BUYER_LABEL[s.buyerType]}${s.buyerName ? `, ${s.buyerName}` : ''}. ${name ?? ''}`}
-            />
+            <div key={s.id} className="flex items-center justify-between gap-3 border-b border-slate-100 py-3 last:border-0">
+              <Link to={batchId ? `/herd/batches/${batchId}` : '/herd'} className="min-w-0">
+                <div className="font-semibold">{s.date}: {head} head, {peso(s.total)}</div>
+                <div className="truncate text-xs text-slate-500">{BUYER_LABEL[s.buyerType]}{s.buyerName ? `, ${s.buyerName}` : ''}. {name ?? ''}</div>
+              </Link>
+              {confirming === s.id ? (
+                <button type="button" className="shrink-0 text-xs font-semibold text-red-600" onClick={() => undo(s.id)}>Confirm undo</button>
+              ) : (
+                <button type="button" className="shrink-0 text-xs text-slate-400" onClick={() => { setConfirming(s.id); setError(null) }}>Undo sale</button>
+              )}
+            </div>
           )
         })
       )}
+      <ErrorText error={error} />
     </Card>
   )
 }
