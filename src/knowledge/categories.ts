@@ -27,6 +27,7 @@ export const FINANCING_CATEGORIES = {
   drawing: [{ id: 'drawing', label: 'Owner drawing' }],
   loan: [{ id: 'loan', label: 'Loan received' }],
   loanPayment: [{ id: 'loanPayment', label: 'Loan repayment' }],
+  ownerCapital: [{ id: 'ownerContribution', label: 'Owner contribution' }],
 } as const
 
 export type Category = { id: string; label: string }
@@ -35,7 +36,8 @@ const CAPITAL_CATEGORY_IDS = ['penConstruction', 'equipment', 'stockPurchase', '
 export const CAPITAL_CATEGORIES = EXPENSE_CATEGORIES.filter((c) => CAPITAL_CATEGORY_IDS.includes(c.id))
 
 // Capital purchases (pens, equipment, breeding stock) use the matching subset of
-// the expense categories; drawings and loans carry one fixed category each.
+// the expense categories; drawings, loans and the owner's capital in carry one
+// fixed category each.
 export function categoriesFor(kind: TransactionKind): readonly Category[] {
   switch (kind) {
     case 'expense':
@@ -64,6 +66,7 @@ export const KIND_LABEL: Record<TransactionKind, string> = {
   drawing: 'Drawing',
   loan: 'Loan in',
   loanPayment: 'Loan payment',
+  ownerCapital: "Owner's capital in",
 }
 
 // Ledger category of a stock purchase, from the inventory item's category.

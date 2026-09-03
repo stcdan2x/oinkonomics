@@ -41,6 +41,7 @@ export interface CashFlow {
   loansIn: number
   loanPaymentsOut: number
   drawingsOut: number
+  ownerCapitalIn: number
   netCash: number
   openingBalance: number
   closingBalance: number
@@ -57,7 +58,8 @@ export function byCategory(txs: Transaction[]): CategoryTotal[] {
   return [...map].map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount || a.category.localeCompare(b.category))
 }
 
-// Operating result only: capital purchases, drawings and loans never touch it.
+// Operating result only: capital purchases, drawings, loans and the owner's
+// capital in never touch it.
 export function incomeStatement(txs: Transaction[], from: ISODate, to: ISODate): IncomeStatement {
   const rows = inPeriod(txs, from, to)
   const revenue = byCategory(rows.filter((t) => t.kind === 'revenue'))
@@ -67,7 +69,7 @@ export function incomeStatement(txs: Transaction[], from: ISODate, to: ISODate):
   return { revenue, expenses, totalRevenue, totalExpenses, netIncome: totalRevenue - totalExpenses }
 }
 
-const INFLOW: Record<Transaction['kind'], 1 | -1> = { revenue: 1, loan: 1, expense: -1, capital: -1, drawing: -1, loanPayment: -1 }
+const INFLOW: Record<Transaction['kind'], 1 | -1> = { revenue: 1, loan: 1, ownerCapital: 1, expense: -1, capital: -1, drawing: -1, loanPayment: -1 }
 const signed = (txs: Transaction[]) => txs.reduce((s, t) => s + INFLOW[t.kind] * t.amount, 0)
 
 export function cashFlow(txs: Transaction[], from: ISODate, to: ISODate): CashFlow {
@@ -82,6 +84,7 @@ export function cashFlow(txs: Transaction[], from: ISODate, to: ISODate): CashFl
     loansIn: of('loan'),
     loanPaymentsOut: of('loanPayment'),
     drawingsOut: of('drawing'),
+    ownerCapitalIn: of('ownerCapital'),
     netCash,
     openingBalance,
     closingBalance: openingBalance + netCash,

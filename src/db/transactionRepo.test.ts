@@ -35,6 +35,15 @@ describe('addTransaction', () => {
     await expect(addTransaction({ date: '2026-03-03', kind: 'loan', category: 'feed', amount: 500, links: {} })).rejects.toThrow(/category/i)
   })
 
+  // TASK 003 Phase 2, step 2.1 (§7 D4): the owner's own money in is its own kind
+  // with one fixed category, so it is never mistaken for a loan or for income.
+  it("accepts the owner's capital in with its one category only", async () => {
+    const tx = await addTransaction({ date: '2026-03-01', kind: 'ownerCapital', category: 'ownerContribution', amount: 20000, links: {} })
+    expect(await db.transactions.get(tx.id)).toMatchObject({ kind: 'ownerCapital', category: 'ownerContribution', amount: 20000 })
+    await expect(addTransaction({ date: '2026-03-01', kind: 'ownerCapital', category: 'loan', amount: 10, links: {} })).rejects.toThrow(/category/i)
+    await expect(addTransaction({ date: '2026-03-01', kind: 'loan', category: 'ownerContribution', amount: 10, links: {} })).rejects.toThrow(/category/i)
+  })
+
   it('rejects a malformed date', async () => {
     await expect(addTransaction({ date: '2/3/2026', kind: 'expense', category: 'feed', amount: 10, links: {} })).rejects.toThrow(/date/i)
   })

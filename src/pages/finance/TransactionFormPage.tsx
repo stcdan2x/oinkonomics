@@ -78,7 +78,7 @@ export default function TransactionFormPage() {
 
   return (
     <>
-      <PageHeader title={id ? 'Edit transaction' : 'Record a transaction'} subtitle="Expenses, revenue, capital purchases, drawings and loans" />
+      <PageHeader title={id ? 'Edit transaction' : 'Record a transaction'} subtitle="Expenses, revenue, capital purchases, drawings, loans and the owner's capital" />
       <form onSubmit={submit}>
         <Card action={<GuideLink id="money-rules" />}>
           <Field label="Kind">

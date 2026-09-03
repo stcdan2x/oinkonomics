@@ -19,7 +19,7 @@ export default function ReportsTab({ from, to }: { from: string; to: string }) {
         <Section title="Expenses" rows={is.expenses} />
         <Total label="Total expenses" value={is.totalExpenses} />
         <Total label="Net income" value={is.netIncome} strong />
-        <p className="mt-2 text-xs text-slate-400">Operating result: capital purchases, drawings and loans are in the cash flow below, not here.</p>
+        <p className="mt-2 text-xs text-slate-400">Operating result: capital purchases, drawings, loans and the owner's capital in are in the cash flow below, not here.</p>
       </Card>
       <Card title="Cash flow" action={<GuideLink id="money-rules" label="Money rules" />}>
         <Line label="Opening balance" value={cf.openingBalance} />
@@ -28,6 +28,7 @@ export default function ReportsTab({ from, to }: { from: string; to: string }) {
         <Line label="Capital purchases" value={-cf.capitalOut} />
         <Line label="Loans received" value={cf.loansIn} />
         <Line label="Loan repayments" value={-cf.loanPaymentsOut} />
+        <Line label="Owner's capital in" value={cf.ownerCapitalIn} />
         <Line label="Owner drawings" value={-cf.drawingsOut} />
         <Total label="Net cash this period" value={cf.netCash} />
         <Total label="Closing balance" value={cf.closingBalance} strong />

@@ -222,7 +222,7 @@ Everything else, from the electricity bill to the loan from a relative, goes thr
 
 | Field | What to enter |
 |---|---|
-| **Kind** | What sort of money this is: **Expense**, **Revenue**, **Capital purchase**, **Drawing**, **Loan in** or **Loan payment**. The kind decides whether the entry counts as profit or only as cash, see [keep the books](/guide/keep-the-books). |
+| **Kind** | What sort of money this is: **Expense**, **Revenue**, **Capital purchase**, **Drawing**, **Loan in**, **Loan payment** or **Owner's capital in**. The kind decides whether the entry counts as profit or only as cash, see [keep the books](/guide/keep-the-books). |
 | **Category** | The list changes with the kind (below). |
 | **Date** | The day the money was paid or received, not the day the feed was used or the invoice arrived. |
 | **Amount (₱)** | Always a positive number; the kind says which way it went. |
@@ -241,10 +241,11 @@ Then **Save**. Opening the form from a batch page (**Record expense**) or from a
 | **Drawing** (money the owner takes out) | **Owner drawing** | Cash taken for the household. |
 | **Loan in** (money borrowed; cash in, not income) | **Loan received** | A loan from a cooperative or a relative. |
 | **Loan payment** (repaying it; cash out, not an expense) | **Loan repayment** | Each instalment. Interest that is charged separately is an **Expense** in **Other**. |
+| **Owner's capital in** (your own money put into the farm; cash in, not income) | **Owner contribution** | The cash you start the farm with; more of your own money added later to buy feed or build a pen. Taking it back out is a **Drawing**. |
 
 ## The ledger
 
-**Ledger** lists the entries of the chosen period (the period buttons and dates at the top, see [read the reports](/guide/read-the-reports)), newest first, each with its category, its kind, the batch or animal it applies to, and the note. Money out shows as a negative amount, money in as positive. The three figures above the list, **Revenue**, **Expenses** and **Net**, count operating entries only; capital purchases, drawings and loans are listed but left out of those totals.
+**Ledger** lists the entries of the chosen period (the period buttons and dates at the top, see [read the reports](/guide/read-the-reports)), newest first, each with its category, its kind, the batch or animal it applies to, and the note. Money out shows as a negative amount, money in as positive. The three figures above the list, **Revenue**, **Expenses** and **Net**, count operating entries only; capital purchases, drawings, loans and the owner's capital in are listed but left out of those totals.
 
 An entry that came from a sale or from a stock purchase says so under its amount and has no delete button: correct it at its source, see [fix mistakes](/guide/fix-mistakes). Any other entry can be changed with **Edit**, which opens the transaction form filled in (what the entry applies to stays as it was), or removed with **Delete** and then **Confirm delete**.
 
@@ -272,6 +273,7 @@ Each kind of entry answers one or both:
 | Drawing | no | yes, out |
 | Loan in | no | yes, in |
 | Loan payment | no | yes, out |
+| Owner's capital in | no | yes, in |
 
 So **Net income** on the reports is what the farm earned from raising pigs in the period, and **Closing balance** is what should be in the cash box if every peso went through the ledger. A month can show a profit and an empty cash box (you built a pen, or drew the money out), or a loss and a full one (a loan came in). Read both, see [read the reports](/guide/read-the-reports) and [money rules](/guide/money-rules).
 
@@ -279,7 +281,7 @@ So **Net income** on the reports is what the farm earned from raising pigs in th
 
 The ledger starts at zero on the day of your first entry, and **Cash on hand** on the dashboard is simply every entry added up. You have two honest ways to begin:
 
-- Track the cash box. On your start date record the money you put into the farm as **Loan in** (category **Loan received**, note "owner's money"), and any real loan the same way. From then on **Cash on hand** should match the cash box. When you take your own money back out, record it as **Loan payment**; money the farm earned that you take out is a **Drawing**. Neither touches profit.
+- Track the cash box. On your start date record the money you put into the farm as **Owner's capital in** (category **Owner contribution**), and a real loan as **Loan in**. From then on **Cash on hand** should match the cash box. Money you take out, your own or what the farm earned, is a **Drawing**; a loan instalment is a **Loan payment**. None of these touches profit.
 - Track only what the farm generates. Record nothing at the start. **Cash on hand** then means the net cash the farm has produced since your start date, positive or negative, and the cash box is your own affair.
 
 Pick one and stay with it. Pens, equipment and breeding stock you already owned on the start date are not entered: the app measures return on the capital spent from the start date on.
@@ -320,7 +322,7 @@ The ledger is your cash book. Keep beside it, dated and in order: official recei
 
 ## Cash flow
 
-The **Cash flow** card follows the money: **Opening balance** (every entry before the period added up), **Operating in (revenue)**, **Operating out (expenses)**, **Capital purchases**, **Loans received**, **Loan repayments**, **Owner drawings**, then **Net cash this period** and **Closing balance**. The closing balance is the dashboard's **Cash on hand**. If it does not match the cash box, an entry is missing, see [keep the books](/guide/keep-the-books).
+The **Cash flow** card follows the money: **Opening balance** (every entry before the period added up), **Operating in (revenue)**, **Operating out (expenses)**, **Capital purchases**, **Loans received**, **Loan repayments**, **Owner's capital in**, **Owner drawings**, then **Net cash this period** and **Closing balance**. The closing balance is the dashboard's **Cash on hand**. If it does not match the cash box, an entry is missing, see [keep the books](/guide/keep-the-books).
 
 ## Unit costs and capital
 

@@ -20,6 +20,7 @@ const KIND_TONE: Record<TransactionKind, 'brand' | 'slate' | 'amber' | 'red' | '
   drawing: 'slate',
   loan: 'brand',
   loanPayment: 'slate',
+  ownerCapital: 'brand',
 }
 
 // Money leaving the farm is shown negative in the ledger; money coming in, positive.
@@ -64,7 +65,7 @@ function LedgerTab({ from, to }: { from: string; to: string }) {
           <Stat label="Expenses" value={peso(expenses)} />
           <Stat label="Net" value={peso(revenue - expenses)} tone={revenue - expenses < 0 ? 'text-red-600' : 'text-green-700'} />
         </div>
-        <p className="mt-2 text-center text-xs text-slate-400">Operating only: capital, drawings and loans are listed below but not in these totals.</p>
+        <p className="mt-2 text-center text-xs text-slate-400">Operating only: capital, drawings, loans and the owner's capital in are listed below but not in these totals.</p>
       </Card>
       <div className="mx-4 mb-4">
         <LinkButton to="/finance/new">Record a transaction</LinkButton>

@@ -135,7 +135,7 @@ export interface Sale extends BaseRow {
   transactionId?: string
 }
 
-export type TransactionKind = 'expense' | 'revenue' | 'capital' | 'drawing' | 'loan' | 'loanPayment'
+export type TransactionKind = 'expense' | 'revenue' | 'capital' | 'drawing' | 'loan' | 'loanPayment' | 'ownerCapital'
 
 export interface Transaction extends BaseRow {
   date: ISODate
