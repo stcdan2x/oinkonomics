@@ -144,4 +144,11 @@ describe('stock costing', () => {
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({ category: 'medicineVaccine', amount: 120 })
   })
+
+  // TASK 003 Phase 3, step 3.1 (§7 D5): a move drawn for one animal carries that
+  // animal, so costing charges a breeder's medicine to the herd as a direct cost.
+  it('links a move drawn for an animal to that animal', () => {
+    const rows = stockCostRows([move({ id: 'a', animalId: 'sow1' })], [item])
+    expect(rows[0].links).toEqual({ batchId: undefined, animalId: 'sow1', itemId: 'i1' })
+  })
 })

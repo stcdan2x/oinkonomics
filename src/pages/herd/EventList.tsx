@@ -1,10 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
+import { db } from '../../db/db'
 import { eventsFor, undoEvent, updateEvent } from '../../db/eventRepo'
 import { withdrawalEnd } from '../../engine/withdrawal'
 import type { FarmEvent, SubjectType } from '../../types'
 import { btnPrimary, btnSecondary, Card, Empty, ErrorText, Field, inputCls } from '../../components/ui'
 import { EVENT_LABEL } from './labels'
+import { StockDrawFields, useStockItems } from './TreatmentForm'
 
 function summary(e: FarmEvent): string {
   const d = e.data
@@ -12,6 +14,7 @@ function summary(e: FarmEvent): string {
   if (typeof d.product === 'string') parts.push(d.product)
   if (typeof d.withdrawalDays === 'number') parts.push(`withdrawal ${d.withdrawalDays} d, until ${withdrawalEnd(e.date, d.withdrawalDays)}`)
   if (typeof d.dose === 'string' && d.dose) parts.push(d.dose)
+  if (typeof d.stockMoveId === 'string') parts.push('from stock')
   if (typeof d.avgKg === 'number') parts.push(`${d.avgKg} kg avg${typeof d.sampleSize === 'number' ? ` (n=${d.sampleSize})` : ''}`)
   if (typeof d.bornAlive === 'number') parts.push(`${d.bornAlive} alive, ${d.stillborn} stillborn, ${d.mummified} mummified`)
   if (typeof d.weanedCount === 'number') parts.push(`${d.weanedCount} weaned`)
@@ -91,13 +94,21 @@ function EventEditForm({ event, onDone }: { event: FarmEvent; onDone: () => void
   const [days, setDays] = useState(typeof d.withdrawalDays === 'number' ? String(d.withdrawalDays) : '')
   const [dose, setDose] = useState(typeof d.dose === 'string' ? d.dose : '')
   const [note, setNote] = useState(typeof d.note === 'string' ? d.note : '')
+  // TASK 003 Phase 3: the draw from stock starts from the event's live move and
+  // is sent on every save (the repo keeps an unchanged draw and its cost).
+  const stockItems = useStockItems()
+  const moveId = typeof d.stockMoveId === 'string' ? d.stockMoveId : null
+  const move = useLiveQuery(async () => (moveId ? ((await db.stockMoves.get(moveId)) ?? null) : null), [moveId])
+  const [draw, setDraw] = useState<{ itemId: string; qty: string } | null>(null)
+  const current = draw ?? (move && !move.deletedAt ? { itemId: move.itemId, qty: String(-move.qtyDelta) } : { itemId: '', qty: '' })
   const [error, setError] = useState<string | null>(null)
   async function save() {
     try {
       const data = weight
         ? { avgKg: Number(avg), sampleSize: n ? Number(n) : null }
         : { product, withdrawalDays: days.trim() ? Number(days) : null, dose: dose || null, note: note || null }
-      await updateEvent(event.id, { date, data })
+      const stock = weight ? undefined : current.itemId ? { itemId: current.itemId, qty: Number(current.qty) } : moveId ? null : undefined
+      await updateEvent(event.id, { date, data, stock })
       onDone()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
@@ -119,6 +130,7 @@ function EventEditForm({ event, onDone }: { event: FarmEvent; onDone: () => void
             <Field label="Withdrawal days" hint="(blank if none)"><input type="number" min={0} inputMode="numeric" className={inputCls} value={days} onChange={(e) => setDays(e.target.value)} /></Field>
             <Field label="Dose" hint="(optional)"><input className={inputCls} value={dose} onChange={(e) => setDose(e.target.value)} /></Field>
           </div>
+          <StockDrawFields items={stockItems} itemId={current.itemId} qty={current.qty} onItem={(itemId) => setDraw({ itemId, qty: itemId ? current.qty : '' })} onQty={(qty) => setDraw({ itemId: current.itemId, qty })} />
           <Field label="Note" hint="(optional)"><input className={inputCls} value={note} onChange={(e) => setNote(e.target.value)} /></Field>
         </>
       )}

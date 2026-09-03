@@ -62,6 +62,15 @@ describe('recordStockMove', () => {
     await expect(recordStockMove({ itemId: 'nope', date: '2026-06-01', qtyDelta: 1, reason: 'purchase' })).rejects.toThrow(/item/i)
   })
 
+  // TASK 003 Phase 3, step 3.1: a consumption can name the animal it was for.
+  it('keeps the animal a consumption was drawn for', async () => {
+    const item = await feed()
+    await recordStockMove({ itemId: item.id, date: '2026-06-01', qtyDelta: 10, reason: 'purchase' })
+    const used = await recordStockMove({ itemId: item.id, date: '2026-06-02', qtyDelta: -1, reason: 'consumption', animalId: 'sow1' })
+    expect(await db.stockMoves.get(used.id)).toMatchObject({ animalId: 'sow1', qtyDelta: -1 })
+    expect((await db.inventoryItems.get(item.id))!.qtyOnHand).toBe(9)
+  })
+
   it('accepts a positive or negative adjustment', async () => {
     const item = await feed()
     await recordStockMove({ itemId: item.id, date: '2026-06-01', qtyDelta: 5, reason: 'adjustment' })

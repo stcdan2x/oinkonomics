@@ -105,7 +105,8 @@ export const isStockPurchase = (t: Transaction) => t.kind === 'expense' && !!t.l
 
 // Consumption and loss moves as expense-shaped cost rows: valued at the unit
 // cost snapshotted on the move (the item's current cost when the snapshot is
-// missing), dated on the move, linked to the move's batch when it has one.
+// missing), dated on the move, linked to the move's batch or animal when it
+// has one (a breeder's medicine becomes a herd direct cost that way).
 export function stockCostRows(moves: StockMove[], items: InventoryItem[]): Transaction[] {
   const itemById = new Map(items.map((i) => [i.id, i]))
   const rows: Transaction[] = []
@@ -121,7 +122,7 @@ export function stockCostRows(moves: StockMove[], items: InventoryItem[]): Trans
       kind: 'expense',
       category: ITEM_EXPENSE_CATEGORY[item.category],
       amount: Math.abs(m.qtyDelta) * (m.unitCost ?? item.unitCost),
-      links: { batchId: m.batchId, itemId: m.itemId },
+      links: { batchId: m.batchId, animalId: m.animalId, itemId: m.itemId },
     })
   }
   return rows

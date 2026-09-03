@@ -1,10 +1,13 @@
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { recordTreatment, type TreatmentInput } from '../../db/eventRepo'
+import { listItems } from '../../db/inventoryRepo'
 import { todayISO } from '../../engine/dates'
 import { withdrawalEnd } from '../../engine/withdrawal'
 import { WITHDRAWAL_PRODUCTS, findProduct } from '../../knowledge/withdrawal'
-import type { SubjectType } from '../../types'
+import type { InventoryItem, ItemCategory, SubjectType } from '../../types'
 import { btnPrimary, btnSecondary, ErrorText, Field, inputCls } from '../../components/ui'
+import { qtyLabel } from '../inventory/labels'
 
 const OTHER = '__other__'
 const TYPES: { id: TreatmentInput['type']; label: string }[] = [
@@ -14,6 +17,33 @@ const TYPES: { id: TreatmentInput['type']; label: string }[] = [
   { id: 'ironShot', label: 'Iron shot' },
 ]
 
+// TASK 003 Phase 3: a health event can draw the product from stock. The two
+// fields appear only when the farm keeps an item it could draw from.
+const STOCK_CATEGORIES: ItemCategory[] = ['medicine', 'vaccine', 'supplement']
+
+export function useStockItems(): InventoryItem[] {
+  const items = useLiveQuery(() => listItems(), []) ?? []
+  return items.filter((i) => STOCK_CATEGORIES.includes(i.category))
+}
+
+export function StockDrawFields({ items, itemId, qty, onItem, onQty }: { items: InventoryItem[]; itemId: string; qty: string; onItem: (id: string) => void; onQty: (qty: string) => void }) {
+  if (!items.length) return null
+  const item = items.find((i) => i.id === itemId)
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <Field label="From stock" hint="(optional)">
+        <select className={inputCls} value={itemId} onChange={(e) => onItem(e.target.value)}>
+          <option value="">Not from stock</option>
+          {items.map((i) => <option key={i.id} value={i.id}>{i.name} ({qtyLabel(i.qtyOnHand, i.unit)} on hand)</option>)}
+        </select>
+      </Field>
+      <Field label="Quantity used" hint={item ? `(${item.unit})` : undefined}>
+        <input type="number" min={0} step="any" inputMode="decimal" className={inputCls} value={qty} disabled={!item} onChange={(e) => onQty(e.target.value)} />
+      </Field>
+    </div>
+  )
+}
+
 export default function TreatmentForm({ subjectType, subjectId, onDone }: { subjectType: SubjectType; subjectId: string; onDone: () => void }) {
   const [type, setType] = useState<TreatmentInput['type']>('treatment')
   const [productKey, setProductKey] = useState(WITHDRAWAL_PRODUCTS[0].name)
@@ -22,7 +52,10 @@ export default function TreatmentForm({ subjectType, subjectId, onDone }: { subj
   const [date, setDate] = useState(todayISO())
   const [dose, setDose] = useState('')
   const [note, setNote] = useState('')
+  const [itemId, setItemId] = useState('')
+  const [qty, setQty] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const stockItems = useStockItems()
 
   const product = productKey === OTHER ? custom : productKey
   const known = findProduct(productKey)
@@ -37,7 +70,8 @@ export default function TreatmentForm({ subjectType, subjectId, onDone }: { subj
   async function save() {
     try {
       if (type !== 'ironShot' && daysNum === null) throw new Error('Enter the withdrawal days from the product label (0 if none)')
-      await recordTreatment({ subjectType, subjectId, type, date, product, withdrawalDays: daysNum, dose: dose || undefined, note: note || undefined })
+      const stock = itemId ? { itemId, qty: Number(qty) } : undefined
+      await recordTreatment({ subjectType, subjectId, type, date, product, withdrawalDays: daysNum, dose: dose || undefined, note: note || undefined, stock })
       onDone()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
@@ -79,6 +113,7 @@ export default function TreatmentForm({ subjectType, subjectId, onDone }: { subj
       <Field label="Dose" hint="(optional)">
         <input className={inputCls} placeholder="e.g. 1 mL per 33 kg" value={dose} onChange={(e) => setDose(e.target.value)} />
       </Field>
+      <StockDrawFields items={stockItems} itemId={itemId} qty={qty} onItem={setItemId} onQty={setQty} />
       <Field label="Note" hint="(optional)">
         <input className={inputCls} value={note} onChange={(e) => setNote(e.target.value)} />
       </Field>

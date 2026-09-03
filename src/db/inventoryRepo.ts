@@ -48,6 +48,7 @@ export interface StockMoveInput {
   qtyDelta: number
   reason: StockMoveReason
   batchId?: string
+  animalId?: string
   transactionId?: string
 }
 

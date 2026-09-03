@@ -167,6 +167,7 @@ export interface StockMove extends BaseRow {
   qtyDelta: number
   reason: StockMoveReason
   batchId?: string
+  animalId?: string // a consumption drawn for one animal (a breeder's medicine is a herd direct cost)
   transactionId?: string
   unitCost?: number // the item's unit cost when the move was recorded; values consumption for costing
 }

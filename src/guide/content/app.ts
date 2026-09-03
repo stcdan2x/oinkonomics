@@ -167,7 +167,7 @@ For a litter-born batch, piglet value = head at start x cost per weaned piglet, 
 
 ## Stock used
 
-A feed or medicine purchase is an expense on the day you pay, but it reaches a batch only when you record the use: every consumption or loss move is valued at the item's unit cost at that moment (the moving weighted average kept by the [stock rules](/guide/stock-rules)). A move linked to a batch is a direct cost of that batch; a move with no batch link joins the shared pool of its month. Stock bought but not yet used is charged to nobody yet, so a batch is not blamed for the bags still in the store. The ledger itself stays on the cash basis of the [money rules](/guide/money-rules).
+A feed or medicine purchase is an expense on the day you pay, but it reaches a batch only when you record the use: every consumption or loss move is valued at the item's unit cost at that moment (the moving weighted average kept by the [stock rules](/guide/stock-rules)). A move linked to a batch is a direct cost of that batch; a move a health event drew for a sow, gilt or boar is a direct cost of the breeding herd; a move with neither link joins the shared pool of its month. Stock bought but not yet used is charged to nobody yet, so a batch is not blamed for the bags still in the store. The ledger itself stays on the cash basis of the [money rules](/guide/money-rules).
 
 ## Batch profit
 
