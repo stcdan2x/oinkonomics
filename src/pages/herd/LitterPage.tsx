@@ -12,7 +12,7 @@ import { breedingCalendar, expectedWeanDate, isOpenLitter, sowStage } from '../.
 import { plusDays, todayISO } from '../../engine/dates'
 import type { Litter, StrategyId } from '../../types'
 import EventList from './EventList'
-import { MILESTONE_LABEL, STAGE_LABEL, STAGE_TONE, STRATEGY_LABEL } from './labels'
+import { MILESTONE_LABEL, STAGE_LABEL, STAGE_TONE, STRATEGY_LABEL, OUTCOME_LABEL } from './labels'
 
 export default function LitterPage() {
   const { id = '' } = useParams()
@@ -58,7 +58,7 @@ export default function LitterPage() {
         {litter.farrowDate && <Row label="Farrowed">{litter.farrowDate}: {litter.bornAlive} alive, {litter.stillborn} stillborn, {litter.mummified} mummified</Row>}
         {litter.farrowDate && !litter.weanDate && <Row label="Wean around">{expectedWeanDate(litter.farrowDate)} (28 days)</Row>}
         {litter.weanDate && <Row label="Weaned">{litter.weanDate}: {litter.weanedCount} of {litter.bornAlive}</Row>}
-        {litter.outcome && litter.outcome !== 'farrowed' && <Row label="Outcome">{litter.outcome}</Row>}
+        {(litter.outcome === 'notPregnant' || litter.outcome === 'aborted') && <Row label="Outcome">{OUTCOME_LABEL[litter.outcome]}</Row>}
         {batch && <Row label="Batch"><LinkButton to={`/herd/batches/${batch.id}`} secondary>{batch.name}</LinkButton></Row>}
         {sow && <Row label="Sow"><LinkButton to={`/herd/animals/${sow.id}`} secondary>{sow.tag}</LinkButton></Row>}
       </Card>

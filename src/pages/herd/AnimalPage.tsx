@@ -11,7 +11,7 @@ import { expectedFarrowDate, isOpenLitter, sowStage } from '../../engine/breedin
 import { todayISO } from '../../engine/dates'
 import type { Animal } from '../../types'
 import EventList from './EventList'
-import { MILESTONE_LABEL, ROLE_LABEL, STAGE_LABEL, STAGE_TONE } from './labels'
+import { MILESTONE_LABEL, OUTCOME_LABEL, ROLE_LABEL, STAGE_LABEL, STAGE_TONE } from './labels'
 import SaleForm from './SaleForm'
 import TreatmentForm from './TreatmentForm'
 
@@ -80,7 +80,7 @@ export default function AnimalPage() {
                 key={l.id}
                 to={`/herd/litters/${l.id}`}
                 title={`Served ${l.serviceDate}`}
-                subtitle={l.farrowDate ? `Farrowed ${l.farrowDate}: ${l.bornAlive} alive, ${l.weanDate ? `${l.weanedCount} weaned ${l.weanDate}` : 'not yet weaned'}` : l.outcome ? l.outcome : `due ${l.expectedFarrowDate}`}
+                subtitle={l.farrowDate ? `Farrowed ${l.farrowDate}: ${l.bornAlive} alive, ${l.weanDate ? `${l.weanedCount} weaned ${l.weanDate}` : 'not yet weaned'}` : l.outcome === 'notPregnant' || l.outcome === 'aborted' ? OUTCOME_LABEL[l.outcome] : `due ${l.expectedFarrowDate}`}
                 right={isOpenLitter(l) ? <Badge tone="brand">open</Badge> : undefined}
               />
             ))

@@ -4,6 +4,7 @@ import GuideLink from '../../components/GuideLink'
 import { computeFarmCosting, herdTotals } from '../../db/costingRepo'
 import { db } from '../../db/db'
 import { todayISO } from '../../engine/dates'
+import { ALL_TIME } from '../../engine/finance'
 import { costPerWeanedPiglet, paybackDate, roi } from '../../engine/unitCosts'
 
 export default function UnitCostsCard({ from, to, netIncome }: { from: string; to: string; netIncome: number }) {
@@ -21,7 +22,7 @@ export default function UnitCostsCard({ from, to, netIncome }: { from: string; t
       <Row label={`Breeding herd cost (${herd.months.length} month${herd.months.length === 1 ? '' : 's'})`}>{peso(herd.cost)}</Row>
       <Row label="Piglets weaned">{herd.weaned}</Row>
       <Row label="Cost per weaned piglet">{perPiglet !== null ? peso(perPiglet) : 'no weaning in these months'}</Row>
-      <Row label={`Capital spent to ${to}`}>{peso(capital)}</Row>
+      <Row label={to === ALL_TIME.to ? 'Capital spent to date' : `Capital spent to ${to}`}>{peso(capital)}</Row>
       <Row label="ROI (net income / capital)">{r !== null ? `${(r * 100).toFixed(1)}%` : 'no capital recorded'}</Row>
       <Row label="Capital paid back">{payback ?? 'not yet'}</Row>
       <p className="mt-2 text-xs text-slate-400">Herd cost = expenses linked to sows, gilts and boars plus their head-day share of shared expenses, over the calendar months touching the period. Payback is the day cumulative net operating income first covered all capital spent.</p>

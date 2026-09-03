@@ -76,3 +76,10 @@ export const EVENT_LABEL: Record<EventType, string> = {
   sale: 'Sale',
   note: 'Note',
 }
+
+// A litter closed without a farrowing (TASK 004 G3): the outcome id is stored
+// on the litter and its close note; the pages show the form's own wording.
+export const OUTCOME_LABEL: Record<'notPregnant' | 'aborted', string> = {
+  notPregnant: 'Returned to heat / not pregnant',
+  aborted: 'Aborted',
+}

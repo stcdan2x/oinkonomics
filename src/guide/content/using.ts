@@ -126,7 +126,7 @@ Around day 28 the litter page shows **Record weaning**. Enter the **Weaning date
 
 After weaning the litter page offers **Start a batch from this litter**. Choose the **Plan for this batch** (the book link under the field opens the strategy's article; **Undecided** links to the decision rules) and an optional **Batch name**, then **Create batch**. The weaned count becomes the head count and the weaning date the start date. The batch opens at once; the piglets' share of the breeding herd's cost travels with them, see [cost allocation](/guide/cost-allocation).
 
-Every service, farrowing and weaning is also listed under **History** at the bottom of the sow's card and the litter page.`,
+Every service is also listed under **History** at the bottom of the sow's card; the litter page's **History** lists the farrowing, the weaning and any note the litter was closed with.`,
     sources: [],
   },
   {
@@ -368,7 +368,7 @@ For stock that was already on the shelf when you started, open the item, tap **A
 
 **Inventory**, then **Daily feed** (or **Record feed** on the batch page, which pre-selects the batch). Choose **Fed to**: a batch, or **Breeding herd / general** for the sows, gilts and boars. Choose the **Feed** (the field shows how much is on hand), tap a preset or type the **Quantity**, in bags or in kg if the item has a kg per unit, check the **Date**, and **Record feed**. The page remembers the last batch, feed and quantity on this device, so the usual entry is three taps. The **Fed today** list below shows what has been recorded today with a **Delete** for a slip.
 
-Each entry takes the feed out of stock and charges it, at the unit cost of that moment, to the batch it was fed to; feed for the breeding herd becomes part of the herd's cost and reaches the piglets at weaning. Feed recorded here is the biggest single line in every batch's costing, see [manage a batch](/guide/manage-a-batch) and [cost allocation](/guide/cost-allocation). Medicines, vaccines and supplements leave stock through the health event on the batch or the animal, not here: choose the item under **From stock** and enter the **Quantity used**, see [manage a batch](/guide/manage-a-batch). The cost reaches the batch the same way, at the unit cost of that moment; for a sow, gilt or boar it becomes part of the breeding herd's cost. A vial that was used up without a health event is a **Loss** or a count adjustment.
+Each entry takes the feed out of stock and charges it, at the unit cost of that moment, to the batch it was fed to. Feed recorded for **Breeding herd / general** is not tied to one batch: it joins that month's shared costs and is split by head-days across the batches alive and the breeding herd, and the herd's share reaches the piglets at weaning, see [cost allocation](/guide/cost-allocation). Feed recorded here is the biggest single line in every batch's costing, see [manage a batch](/guide/manage-a-batch) and [cost allocation](/guide/cost-allocation). Medicines, vaccines and supplements leave stock through the health event on the batch or the animal, not here: choose the item under **From stock** and enter the **Quantity used**, see [manage a batch](/guide/manage-a-batch). The cost reaches the batch the same way, at the unit cost of that moment; for a sow, gilt or boar it becomes part of the breeding herd's cost. A vial that was used up without a health event is a **Loss** or a count adjustment.
 
 ## Counting, losses and the item page
 

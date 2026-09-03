@@ -14,10 +14,13 @@ export default function ItemPage() {
   const item = useLiveQuery(() => db.inventoryItems.get(id), [id])
   const moves = useLiveQuery(() => movesForItem(id), [id]) ?? []
   const batches = useLiveQuery(() => db.batches.toArray(), []) ?? []
+  const animals = useLiveQuery(() => db.animals.toArray(), []) ?? []
   const [adjusting, setAdjusting] = useState(false)
   if (item === undefined) return null
   if (!item || item.deletedAt) return <PageHeader title="Item not found" />
-  const batchName = (m: StockMove) => (m.batchId ? batches.find((b) => b.id === m.batchId)?.name ?? 'batch' : null)
+  // The batch the move went to, or the animal a health event drew it for (TASK 004 G6).
+  const batchName = (m: StockMove) =>
+    m.batchId ? batches.find((b) => b.id === m.batchId)?.name ?? 'batch' : m.animalId ? animals.find((a) => a.id === m.animalId)?.tag ?? 'animal' : null
   return (
     <>
       <PageHeader title={item.name} subtitle={ITEM_CATEGORY_LABEL[item.category]} />

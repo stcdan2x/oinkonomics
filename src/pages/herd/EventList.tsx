@@ -5,7 +5,7 @@ import { eventsFor, undoEvent, updateEvent } from '../../db/eventRepo'
 import { withdrawalEnd } from '../../engine/withdrawal'
 import type { FarmEvent, SubjectType } from '../../types'
 import { btnPrimary, btnSecondary, Card, Empty, ErrorText, Field, inputCls } from '../../components/ui'
-import { EVENT_LABEL } from './labels'
+import { EVENT_LABEL, OUTCOME_LABEL } from './labels'
 import { StockDrawFields, useStockItems } from './TreatmentForm'
 
 function summary(e: FarmEvent): string {
@@ -20,7 +20,8 @@ function summary(e: FarmEvent): string {
   if (typeof d.weanedCount === 'number') parts.push(`${d.weanedCount} weaned`)
   if (typeof d.delta === 'number') parts.push(`${d.delta > 0 ? '+' : ''}${d.delta} head, now ${d.headCountAfter}`)
   if (typeof d.total === 'number') parts.push(`total ${d.total}`)
-  if (typeof d.outcome === 'string') parts.push(d.outcome)
+  if (d.outcome === 'notPregnant' || d.outcome === 'aborted') parts.push(OUTCOME_LABEL[d.outcome])
+  else if (typeof d.outcome === 'string') parts.push(d.outcome)
   if (typeof d.note === 'string' && d.note) parts.push(d.note)
   return parts.join(' / ')
 }
