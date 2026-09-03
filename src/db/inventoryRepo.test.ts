@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from './db'
+import { recordTreatment, undoEvent } from './eventRepo'
 import { createItem, listItems, movesForItem, purchaseStock, recordStockMove, removeStockMove, updateItem } from './inventoryRepo'
 import { listTransactions } from './transactionRepo'
 
@@ -97,6 +98,33 @@ describe('removeStockMove', () => {
     await recordStockMove({ itemId: item.id, date: '2026-06-02', qtyDelta: -4, reason: 'consumption' })
     await expect(removeStockMove(bought.id)).rejects.toThrow(/below zero/i)
     expect((await db.inventoryItems.get(item.id))!.qtyOnHand).toBe(1)
+  })
+
+  // TASK 003 Phase 3, step 3.5 (§7 D7): the move a live health event drew
+  // belongs to the event; only the event's own undo or edit removes it.
+  const medicine = async () => {
+    await db.events.clear()
+    const med = await createItem({ name: 'Amoxicillin', category: 'medicine', unit: 'mL', reorderLevel: 0, unitCost: 12 })
+    await recordStockMove({ itemId: med.id, date: '2026-06-01', qtyDelta: 100, reason: 'purchase' })
+    const event = await recordTreatment({ subjectType: 'batch', subjectId: 'b1', type: 'treatment', date: '2026-06-02', product: 'Amoxicillin', withdrawalDays: 14, stock: { itemId: med.id, qty: 5 } })
+    return { med, event, moveId: event.data.stockMoveId as string }
+  }
+
+  it('refuses to remove a move a live health event drew, while the event itself still can', async () => {
+    const { med, event, moveId } = await medicine()
+    await expect(removeStockMove(moveId)).rejects.toThrow(/health event/i)
+    expect((await db.inventoryItems.get(med.id))!.qtyOnHand).toBe(95)
+    expect((await db.stockMoves.get(moveId))!.deletedAt).toBeNull()
+    await undoEvent(event.id)
+    expect((await db.inventoryItems.get(med.id))!.qtyOnHand).toBe(100)
+    expect((await db.stockMoves.get(moveId))!.deletedAt).not.toBeNull()
+  })
+
+  it('lets the move go once the event that drew it is a tombstone', async () => {
+    const { med, event, moveId } = await medicine()
+    await db.events.put({ ...event, deletedAt: event.updatedAt })
+    await removeStockMove(moveId)
+    expect((await db.inventoryItems.get(med.id))!.qtyOnHand).toBe(100)
   })
 })
 

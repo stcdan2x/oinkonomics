@@ -83,10 +83,14 @@ export async function recordStockMove(input: StockMoveInput): Promise<StockMove>
 
 // Tombstones the move and recounts the item from its remaining live moves; a
 // purchase's transaction is tombstoned with it so the ledger and the stock agree.
-export async function removeStockMove(id: string): Promise<void> {
-  await db.transaction('rw', db.inventoryItems, db.stockMoves, db.transactions, async () => {
+// A move a live health event drew belongs to that event (TASK 003 §7 D7): only
+// the event's own undo or edit removes it, passing its id as `byEventId`.
+export async function removeStockMove(id: string, byEventId?: string): Promise<void> {
+  await db.transaction('rw', db.inventoryItems, db.stockMoves, db.transactions, db.events, async () => {
     const move = await db.stockMoves.get(id)
     if (!move || move.deletedAt) throw new Error('Stock move not found')
+    const owner = await db.events.filter((e) => !e.deletedAt && e.id !== byEventId && e.data.stockMoveId === id).first()
+    if (owner) throw new Error('Drawn by a health event: undo or edit the event instead')
     const item = await db.inventoryItems.get(move.itemId)
     if (!item) throw new Error('Item not found')
     const others = (await db.stockMoves.where('itemId').equals(move.itemId).toArray()).filter((m) => m.id !== id)

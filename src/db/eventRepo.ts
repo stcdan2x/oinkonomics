@@ -68,8 +68,8 @@ function drawStock(stock: StockDraw, subjectType: SubjectType, subjectId: string
   return recordStockMove(input)
 }
 
-// The move an event drew from stock, if it is still live (the item page can
-// remove a move on its own; a gone move counts as none).
+// The move an event drew from stock, if it is still live (a gone move, say one
+// removed on another device before the event synced, counts as none).
 async function liveMoveOf(e: FarmEvent) {
   const id = typeof e.data.stockMoveId === 'string' ? e.data.stockMoveId : null
   const move = id ? await db.stockMoves.get(id) : undefined
@@ -117,7 +117,7 @@ export async function updateEvent(id: string, patch: { date?: ISODate; data?: Re
     const move = await liveMoveOf(e)
     const same = !!move && !!patch.stock && move.itemId === patch.stock.itemId && -move.qtyDelta === patch.stock.qty
     if (patch.stock !== undefined && !same) {
-      if (move) await removeStockMove(move.id)
+      if (move) await removeStockMove(move.id, e.id)
       data.stockMoveId = patch.stock ? (await drawStock(patch.stock, e.subjectType, e.subjectId, date)).id : null
     } else if (move && date !== move.date) {
       await update(db.stockMoves, move.id, { date })
@@ -160,7 +160,7 @@ export async function undoEvent(id: string): Promise<void> {
   }
   await db.transaction('rw', db.events, db.inventoryItems, db.stockMoves, db.transactions, async () => {
     const move = await liveMoveOf(e)
-    if (move) await removeStockMove(move.id)
+    if (move) await removeStockMove(move.id, e.id)
     await softDelete(db.events, id)
   })
 }

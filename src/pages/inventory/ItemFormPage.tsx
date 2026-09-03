@@ -35,6 +35,13 @@ export default function ItemFormPage() {
     setExpiryDate(existing.expiryDate ?? '')
   }, [existing])
 
+  // TASK 003 §7 D8: kg per unit is a feed thing (a 50 kg sack); any other
+  // category starts blank so a medicine does not carry 50 kg into costing labels.
+  const pickCategory = (c: ItemCategory) => {
+    setCategory(c)
+    setKgPerUnit(c === 'feed' ? '50' : '')
+  }
+
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -69,7 +76,7 @@ export default function ItemFormPage() {
             <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Hog grower pellets" required />
           </Field>
           <Field label="Category">
-            <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value as ItemCategory)}>
+            <select className={inputCls} value={category} onChange={(e) => pickCategory(e.target.value as ItemCategory)}>
               {ITEM_CATEGORIES.map((c) => <option key={c} value={c}>{ITEM_CATEGORY_LABEL[c]}</option>)}
             </select>
           </Field>
