@@ -294,7 +294,7 @@ Set aside a quarter of an hour at the end of each month:
 2. Reconcile the cash. Compare **Cash on hand** with the cash box (if you track it). A gap is an entry you forgot; find it rather than forcing it. If it cannot be found, record it once as **Other** (expense) or **Other income** with the note "unexplained difference" so the books tie out and the gap stays visible.
 3. Read the two reports for **Last month**: the income statement for what the farm earned, the cash flow for where the money went. Then the Batches tab for the cost and profit of each batch.
 4. Check the unit costs: cost per weaned piglet, ROI and the payback line, see [unit costs, break-even, ROI and payback](/guide/unit-costs-and-break-even).
-5. Export a backup from **Settings** (**Export file**) and keep it with the month's papers, see [back up and sync](/guide/back-up-and-sync).
+5. Export a backup from **Settings** (**Export file**) and keep it with the month's papers, see [back up and sync](/guide/back-up-and-sync). If an accountant keeps the books, send the month's Excel workbook from the Finance page's **Export** tab, see [read the reports](/guide/read-the-reports).
 
 ## Where a batch's cost comes from, without double counting
 
@@ -311,10 +311,10 @@ The ledger is your cash book. Keep beside it, dated and in order: official recei
     id: 'read-the-reports',
     section: 'using',
     title: 'Read the reports',
-    summary: 'The period buttons, the income statement, the cash flow, the unit costs card, the batch costs tab, and what to look at every month.',
+    summary: 'The period buttons, the income statement, the cash flow, the unit costs card, the batch costs tab, the Excel export for the accountant, and what to look at every month.',
     body: `## Pick the period
 
-**Finance**, **Ledger** and **Reports** share a period: **This month**, **Last month**, **This quarter**, **This year**, **All time**, or any two dates in the boxes below the buttons. The period stays in the page address, so it survives switching tabs and reloading. The dashboard's money tiles use the same period control. The **Batches** tab has no period: a batch spans months, so its figures are lifetime figures.
+**Finance**, **Ledger**, **Reports** and **Export** share a period: **This month**, **Last month**, **This quarter**, **This year**, **All time**, or any two dates in the boxes below the buttons. The period stays in the page address, so it survives switching tabs and reloading. The dashboard's money tiles use the same period control. The **Batches** tab has no period: a batch spans months, so its figures are lifetime figures.
 
 ## Income statement
 
@@ -331,6 +331,14 @@ The **Unit costs and capital** card below the cash flow gives the figures a lend
 ## Batch costs
 
 The **Batches** tab shows one card per batch, sold out or not, with **Open** to jump to the batch: direct costs by category, the allocated share of shared costs with the head-days it was based on, the piglets' starting value for a home-bred batch, **Total cost**, **Revenue**, **Profit**, and the cost per kg sold and break-even per head and per kg. For a batch still on the farm the break-even assumes 90 kg per pig at sale. This is where "did that batch pay?" is answered, and where a plan can be checked against what happened, see [cost allocation](/guide/cost-allocation).
+
+## Export to Excel
+
+The **Export** tab writes one Excel workbook for the period chosen above, for an accountant or for your own files. Tap **Export to Excel**: on a phone the Share sheet opens, so the file can go straight to the accountant by Messenger, Gmail, Viber or Drive; on a computer it downloads. The file is named by the period, oinkonomics-books-2026-08-01-to-2026-08-31.xlsx for August 2026, and opens in Excel, Google Sheets, Numbers or LibreOffice.
+
+Seven sheets: **Summary** (the farm, the period, the income statement, the cash flow and the unit costs, the same figures as the three cards on **Reports**), **Ledger** (every entry of the period with its kind, category and what it applies to), **Sales** and **Sale lines**, **Batch costs** (the **Batches** tab, lifetime figures as at the end of the period), **Stock moves** (purchases and use in the period) and **Stock on hand** (the stock right now, with its value). Names and tags stand where the app keeps ids; a Reference column carries the record id for questions. Money is a number in every cell, so the accountant can add it up.
+
+The workbook is for reading and sending, not for restoring: the app cannot import it back. The backup file does that, see [back up and sync](/guide/back-up-and-sync).
 
 ## What to look at each month
 
@@ -383,7 +391,7 @@ The **Alerts** card at the top of **Inventory** (and the dashboard's alerts) lis
     id: 'back-up-and-sync',
     section: 'using',
     title: 'Back up and sync',
-    summary: 'Export and import a backup file, connect the farm to Google Drive so the phone and the desktop stay in step, handle the hourly reconnect, add a second device, and know what deletes your records.',
+    summary: 'Export and import a backup file, export the records to Excel, connect the farm to Google Drive so the phone and the desktop stay in step, handle the hourly reconnect, add a second device, and know what deletes your records.',
     body: `## Where your records live
 
 Everything you enter is stored inside the browser on this device, not on a server. That is why the app works without a signal, and it is also why the records need protecting: clearing the site's data in the browser, uninstalling the app, resetting the phone or losing it removes them. Two tools cover this, both under **Settings**: a backup file you keep yourself, and Google Drive sync.
@@ -393,6 +401,8 @@ Everything you enter is stored inside the browser on this device, not on a serve
 In **Settings**, the **Backup** card has **Export file** and **Import file**. **Export file** writes one file named with the date, holding every record, into the phone's downloads. Keep a copy somewhere else: the farm's Google Drive, an email to yourself, a memory card. Do it at month end at least, see [keep the books](/guide/keep-the-books).
 
 **Import file** reads such a file back in and merges it: a record from the file is written only when it is missing here or newer than the copy here, and deletions carry over. Nothing newer on this device is ever overwritten, and importing the same file twice changes nothing. The message under the buttons says how many records were restored. This is also the way to move the farm to a new phone if you do not use Google Drive: export on the old one, import on the new one.
+
+**Export to Excel**, below the two buttons, writes the same records as a spreadsheet, oinkonomics-records-2026-09-08.xlsx for a file made on 8 September 2026: one sheet per kind of record (animals, litters, batches, events, sales, transactions, stock and the rest), with names and tags in place of ids, for reading or sending on. It is not a backup: the app cannot import it back, so keep the backup file for that. The Finance page's **Export** tab makes the accountant's workbook for one period, see [read the reports](/guide/read-the-reports).
 
 ## Google Drive sync
 

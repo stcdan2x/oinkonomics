@@ -6,6 +6,11 @@ import GuideLink from '../components/GuideLink'
 import PageHeader from '../components/PageHeader'
 import { Badge, Card, Row, btnDanger, btnPrimary, btnSecondary } from '../components/ui'
 import { exportData, importData, pendingChanges } from '../db/backup'
+import { recordsRows } from '../db/exportRepo'
+import { todayISO } from '../engine/dates'
+import { deliverFile } from '../export/deliver'
+import { buildRecords, recordsFilename } from '../export/records'
+import { sheetsToBlob, XLSX_TYPE } from '../export/xlsx'
 import { disconnectSync, runSync, useSync } from '../sync/store'
 import type { Farm } from '../types'
 
@@ -44,6 +49,21 @@ function BackupCard() {
     setMsg('Backup file created.')
   }
 
+  // The records workbook (TASK 005): every table as a readable sheet, for
+  // reading or sending on; the app never imports it back.
+  async function exportExcel() {
+    setMsg(null)
+    try {
+      const blob = await sheetsToBlob(buildRecords(await recordsRows()))
+      const name = recordsFilename(todayISO())
+      const result = await deliverFile(blob, name, XLSX_TYPE)
+      if (result === 'shared') setMsg(`Shared ${name}`)
+      if (result === 'saved') setMsg(`Saved ${name}`)
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : 'Could not build the Excel file.')
+    }
+  }
+
   async function restoreBackup(file: File) {
     try {
       const written = await importData(JSON.parse(await file.text()))
@@ -67,6 +87,12 @@ function BackupCard() {
           <input type="file" accept="application/json,.json" className="hidden" onChange={(e) => e.target.files?.[0] && void restoreBackup(e.target.files[0])} />
         </label>
       </div>
+      <p className="mb-2 mt-3 text-xs text-slate-500">
+        Export to Excel writes the same records as a spreadsheet, one sheet per kind of record with names in place of ids, for reading or sending on. It is not a backup: the app cannot import it back.
+      </p>
+      <button className={`w-full ${btnSecondary}`} onClick={() => void exportExcel()}>
+        Export to Excel
+      </button>
       {msg && <p className="mt-2 text-xs font-medium text-brand-700">{msg}</p>}
       <div className="mt-2"><GuideLink id="how-the-app-works" label="How deletions and backups work" /></div>
     </Card>

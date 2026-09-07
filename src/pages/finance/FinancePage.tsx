@@ -10,8 +10,9 @@ import { categoryLabel, KIND_LABEL } from '../../knowledge/categories'
 import type { Transaction, TransactionKind } from '../../types'
 import ReportsTab from './ReportsTab'
 import BatchesTab from './BatchesTab'
+import ExportTab from './ExportTab'
 
-export type FinanceTab = 'ledger' | 'reports' | 'batches'
+export type FinanceTab = 'ledger' | 'reports' | 'batches' | 'export'
 
 const KIND_TONE: Record<TransactionKind, 'brand' | 'slate' | 'amber' | 'red' | 'green'> = {
   expense: 'red',
@@ -32,6 +33,7 @@ export default function FinancePage({ tab }: { tab: FinanceTab }) {
     { to: `/finance${search}`, label: 'Ledger', end: true },
     { to: `/finance/reports${search}`, label: 'Reports' },
     { to: `/finance/batches${search}`, label: 'Batches' },
+    { to: `/finance/export${search}`, label: 'Export' },
   ]
   return (
     <>
@@ -41,6 +43,7 @@ export default function FinancePage({ tab }: { tab: FinanceTab }) {
       {tab === 'ledger' && <LedgerTab from={period.from} to={period.to} />}
       {tab === 'reports' && <ReportsTab from={period.from} to={period.to} />}
       {tab === 'batches' && <BatchesTab />}
+      {tab === 'export' && <ExportTab period={period} />}
     </>
   )
 }
